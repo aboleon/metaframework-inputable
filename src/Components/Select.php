@@ -26,7 +26,7 @@ class Select extends Component
         public ?string $identifier = null,
         public bool $randomize = false,
     ) {
-        $this->defaultselecttext = $this->defaultselecttext ?: '---  ' . __('mfw-input::messages.select_option') . ' ---';
+        $this->defaultselecttext = $this->defaultselecttext ?: '---  ' . __('mfw-inputable-messages.select_option') . ' ---';
         $this->class = rtrim('form-control form-select ' . ($this->class ?? ''));
 
         $this->id             = Helpers::generateInputId($this->name . '_' . $this->identifier . ($this->randomize ? '_' . Str::random(8) : ''));
@@ -37,7 +37,7 @@ class Select extends Component
 
     public function render(): Renderable
     {
-        return view('mfw-input::components.select')->with([
+        return view('mfw-inputable::components.select')->with([
             'id' => $this->id,
             'validation_id' => $this->validation_id,
         ]);

@@ -1,13 +1,13 @@
 @push('css')
-    <link rel="stylesheet" href="{!! asset('vendor/mfw-input/flatpickr/flatpickr.min.css') !!}"/>
+    <link rel="stylesheet" href="{!! asset('vendor/mfw-inputable/flatpickr/flatpickr.min.css') !!}"/>
     <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
 @endpush
 
 @push('js')
-    <script src="{!! asset('vendor/mfw-input/flatpickr/flatpickr.js') !!}"></script>
-    @php($localePath = public_path('vendor/mfw-input/flatpickr/locale/'. app()->getLocale().'.js'))
+    <script src="{!! asset('vendor/mfw-inputable/flatpickr/flatpickr.js') !!}"></script>
+    @php($localePath = public_path('vendor/mfw-inputable/flatpickr/locale/'. app()->getLocale().'.js'))
     @if (file_exists($localePath))
-        <script src="{!! asset('vendor/mfw-input/flatpickr/locale/' . app()->getLocale() . '.js') !!}"></script>
+        <script src="{!! asset('vendor/mfw-inputable/flatpickr/locale/' . app()->getLocale() . '.js') !!}"></script>
     @endif
     <script>
       // data-config="enableTime=true,noCalendar=true,dateFormat=d/m/H H:i,minDate=today"

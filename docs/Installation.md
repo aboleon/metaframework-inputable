@@ -2,14 +2,20 @@
 
 ## Publish package resources
 
-After installing the package (either directly or via Metaframework) you should publish the configuration, translations, and front-end assets:
+After installing the package (either directly or via Metaframework) copy the configuration, translations (into `lang/<locale>`), and front-end assets into your application with the dedicated install command:
 
 ```bash
-php artisan vendor:publish --provider="MetaFramework\Inputable\InputableServiceProvider" --tag=mfw-input-config
-php artisan vendor:publish --provider="MetaFramework\Inputable\InputableServiceProvider" --tag=mfw-input-translations
-php artisan vendor:publish --provider="MetaFramework\Inputable\InputableServiceProvider" --tag=mfw-input-assets
+php artisan mfw-inputable:install
+```
+
+Re-run the command with `--force` to overwrite existing files if you need to refresh them.
+
+You can still use Laravel's vendor publish commands when you want to customise individual publish groups:
+
+```bash
+php artisan vendor:publish --provider="MetaFramework\Inputable\InputableServiceProvider" --tag=mfw-inputable-config
+php artisan vendor:publish --provider="MetaFramework\Inputable\InputableServiceProvider" --tag=mfw-inputable-translations
+php artisan vendor:publish --provider="MetaFramework\Inputable\InputableServiceProvider" --tag=mfw-inputable-assets
 # publish everything in a single step
 php artisan vendor:publish --provider="MetaFramework\Inputable\InputableServiceProvider"
 ```
-
-The package automatically Automatically copies its publishable resources (configuration, translations, assets) into `config/mfw-input.php`, `lang/vendor/mfw-input`, and `public/vendor/mfw-input` the first time it boots (existing files are left untouched). Use the publish commands above if you need to refresh or relocate them later. The publish commands above remain available if you need to force a refresh or customise the output path.

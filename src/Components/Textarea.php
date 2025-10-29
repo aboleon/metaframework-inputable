@@ -34,7 +34,7 @@ class Textarea extends Component
 
     public function render(): Renderable
     {
-        return view('mfw-input::components.textarea')->with([
+        return view('mfw-inputable::components.textarea')->with([
             'id' => $this->id,
             'validation_id' => $this->validation_id,
         ]);

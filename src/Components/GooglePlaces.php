@@ -59,7 +59,7 @@ class GooglePlaces extends Component
 
     public function render(): Renderable
     {
-        return view('mfw-input::components.google-places');
+        return view('mfw-inputable::components.google-places');
     }
 
     public function tagRequired(string $key): string

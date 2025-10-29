@@ -29,7 +29,7 @@ class Select
     {
         $html = '';
         if ($this->tree->isNotEmpty()) {
-            $placeholder = '-- ' . Lang::get('mfw-input::messages.select_option') . ' --';
+            $placeholder = '-- ' . Lang::get('mfw-inputable::messages.select_option') . ' --';
             $html = '<select class="form-control" name="' . $this->name . '" id="' . rtrim(str_replace(['[',']'],'_', $this->name),'_') . '"><option value="">' . $placeholder . '</option>';
             foreach ($this->tree as $item) {
                 $this->entry($html, $item);

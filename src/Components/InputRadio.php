@@ -26,6 +26,6 @@ class InputRadio extends Component
 
     public function render(): Renderable
     {
-        return view('mfw-input::components.inputradio');
+        return view('mfw-inputable::components.inputradio');
     }
 }

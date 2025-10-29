@@ -29,4 +29,4 @@
 @if ($prefix)
     </div>
 @endif
-<x-mfw-input::validation-error :field="$validation_id"/>
+<x-mfw-inputable::validation-error :field="$validation_id"/>

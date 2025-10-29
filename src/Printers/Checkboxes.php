@@ -43,7 +43,7 @@ class Checkboxes
     private function entry(string &$html, $item, $parent = null): void
     {
         $html .= '<li data-id="' . $item->id . '"' . ($parent ? ' class="child" data-parent="' . $parent . '"' : '') . '>';
-        $html .= View::make('mfw-input::components.checkbox', [
+        $html .= View::make('mfw-inputable::components.checkbox', [
             'value' => $item->id,
             'name' => $this->name,
             'affected' => $this->affected,

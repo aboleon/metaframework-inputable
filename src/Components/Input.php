@@ -31,7 +31,7 @@ class Input extends Component
 
     public function render(): Renderable
     {
-        return view('mfw-input::components.input')->with([
+        return view('mfw-inputable::components.input')->with([
             'id'            => $this->id,
             'validation_id' => $this->validation_id,
             'name'          => $this->name,

@@ -28,7 +28,7 @@ class Datepicker extends Component
     {
         $baseParams = [
             'data-date-format' => $this->format,
-            'placeholder' => __('mfw-input::messages.select_date'),
+            'placeholder' => __('mfw-inputable-messages.select_date'),
         ];
 
         $this->params = array_merge($baseParams, $this->params);
@@ -37,7 +37,7 @@ class Datepicker extends Component
             $this->params['data-config'] = $this->config;
         }
 
-        return view('mfw-input::components.datepicker')->with([
+        return view('mfw-inputable::components.datepicker')->with([
             'randomize' => $this->randomize,
             'label' => $this->label,
             'class' => $this->class,

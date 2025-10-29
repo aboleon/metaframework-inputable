@@ -25,7 +25,7 @@ class Radio extends Component
 
     public function render(): Renderable
     {
-        return view('mfw-input::components.radio')
+        return view('mfw-inputable::components.radio')
             ->with([
                 'randomize' => $this->randomize,
                 'validation_id' => $this->validation_id,

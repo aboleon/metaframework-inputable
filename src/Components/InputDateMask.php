@@ -27,10 +27,10 @@ class InputDateMask extends Component
         $locale = App::getLocale();
         $this->params = array_merge($this->params, [
             'maxlength' => 10,
-            'placeholder' => Lang::get('mfw-input::messages.date_placeholder', locale: $locale),
+            'placeholder' => Lang::get('mfw-inputable::messages.date_placeholder', locale: $locale),
         ]);
 
-        return view('mfw-input::components.inputdatemask')->with([
+        return view('mfw-inputable::components.inputdatemask')->with([
             'label' => $this->label,
             'class' => $this->class,
             'required' => $this->required,

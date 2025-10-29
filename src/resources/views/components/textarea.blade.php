@@ -23,19 +23,19 @@
 @endif
 >{!! $value !!}</textarea>
 
-<x-mfw-input::validation-error :field="$validation_id"/>
+<x-mfw-inputable::validation-error :field="$validation_id"/>
 
 @if(str_contains($class,'simplified') or str_contains($class, 'extended'))
     @pushonce('js')
         <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" integrity="sha512-VCEWnpOl7PIhbYMcb64pqGZYez41C2uws/M/mDdGPy+vtEJHd9BqbShE4/VNnnZdr7YCPOjd+CBmYca/7WWWCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <script id="tinymce_settings" src="{!! asset('vendor/mfw-input/js/tinymce/default_settings.js') !!}"></script>
+        <script id="tinymce_settings" src="{!! asset('vendor/mfw-inputable/js/tinymce/default_settings.js') !!}"></script>
         <script>
           if ($('textarea.extended').length) {
             tinymce.init(mfw_default_tinymce_settings('textarea.extended'));
           }
           $(function() {
             if ($('textarea.simplified').length) {
-              var url = "{!! asset('vendor/mfw-input/js/tinymce/simplified.js') !!}";
+              var url = "{!! asset('vendor/mfw-inputable/js/tinymce/simplified.js') !!}";
               $.when($.getScript(url)).then(function() {
                 tinymce.init(mfw_simplified_tinymce_settings('textarea.simplified'));
               });

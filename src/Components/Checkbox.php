@@ -38,6 +38,6 @@ class Checkbox extends Component
 
     public function render(): Renderable
     {
-        return view('mfw-input::components.checkbox');
+        return view('mfw-inputable::components.checkbox');
     }
 }

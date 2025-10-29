@@ -3,7 +3,7 @@
         <label class="form-label d-block">{{ $label }}</label>
     @endif
     @forelse($values as $value => $title)
-        <x-mfw-input::input-radio :affected="$affected"
+        <x-mfw-inputable::input-radio :affected="$affected"
                             :default="$default"
                             :value="$value"
                             :name="$name"
@@ -11,7 +11,7 @@
                             :params="$params"
         />
     @empty
-        {{ __('mfw-input::messages.no_data_provided') }}
+        {{ __('mfw-inputable-messages.no_data_provided') }}
     @endforelse
 </div>
-<x-mfw-input::validation-error :field="$validation_id"/>
+<x-mfw-inputable::validation-error :field="$validation_id"/>

@@ -14,6 +14,6 @@ class ValidationError extends Component
 
     public function render(): Renderable
     {
-        return view('mfw-input::components.validation-error');
+        return view('mfw-inputable::components.validation-error');
     }
 }
