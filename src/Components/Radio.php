@@ -16,6 +16,7 @@ class Radio extends Component
         public int|string|null $affected,
         public string $class = 'my-3 p-0',
         public string|null $label = '',
+        public string|null $labelclass = '',
         public int|string|null $default = null,
         public array $params = [],
         public bool $randomize = true,

@@ -1,6 +1,6 @@
 <div class="{{ $class }}">
     @if ($label)
-        <label class="form-label d-block">{{ $label }}</label>
+        <label class="form-label d-block {{ $labelclass }}">{!! $label !!}</label>
     @endif
     @forelse($values as $value => $title)
         <x-mfw-inputable::input-radio :affected="$affected"

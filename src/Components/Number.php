@@ -24,11 +24,13 @@ class Number extends Component
         public bool $readonly = false,
         public array $params = [],
         public bool $randomize = false,
-        public string $prefix = ''
+        public string $prefix = '',
+        public string $suffix = '',
+        public ?string $wrap = null,
     ) {
-        $this->id = Helpers::generateInputId($this->name . ($this->randomize ? '_' . Str::random(8) : ''));
+        $this->id            = Helpers::generateInputId($this->name.($this->randomize ? '_'.Str::random(8) : ''));
         $this->validation_id = Helpers::generateValidationId($this->name);
-        $this->name = Helpers::generateInputName($this->name);
+        $this->name          = Helpers::generateInputName($this->name);
     }
 
     public function render(): Renderable
@@ -41,16 +43,18 @@ class Number extends Component
         }
 
         return view('mfw-inputable::components.input')->with([
-            'id' => $this->id,
+            'id'            => $this->id,
             'validation_id' => $this->validation_id,
-            'type' => 'number',
-            'label' => $this->label,
-            'class' => $this->class,
-            'required' => $this->required,
-            'readonly' => $this->readonly,
-            'value' => $this->value,
-            'params' => $this->params,
-            'prefix' => $this->prefix,
+            'type'          => 'number',
+            'label'         => $this->label,
+            'class'         => $this->class,
+            'required'      => $this->required,
+            'readonly'      => $this->readonly,
+            'value'         => $this->value,
+            'params'        => $this->params,
+            'prefix'        => $this->prefix,
+            'suffix'        => $this->suffix,
+            'wrap'          => $this->wrap,
         ]);
     }
 }
