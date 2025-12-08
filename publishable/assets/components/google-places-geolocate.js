@@ -1,121 +1,279 @@
-function isGoogleMapsApiLoaded() {
-    return typeof google !== 'undefined' && typeof google.maps !== 'undefined';
+/**
+ * Google Places Autocomplete using PlaceAutocompleteElement (New API)
+ * Migrated from legacy google.maps.places.Autocomplete
+ */
+
+async function initializeGooglePlaces() {
+    const metaframeworkGooglePlaces = document.querySelectorAll('.gmapsbar');
+
+    if (!metaframeworkGooglePlaces.length) {
+        return;
+    }
+
+    // Import the places library
+    const { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
+
+    metaframeworkGooglePlaces.forEach(function (element) {
+        setupGooglePlacesBar(element, PlaceAutocompleteElement);
+    });
 }
 
-function initialize() {
+function setupGooglePlacesBar(element, PlaceAutocompleteElement) {
+    const mapsbarId = element.getAttribute('id');
+    const paramsElement = document.getElementById('params_' + mapsbarId);
+    const autocompleteInput = element.querySelector('.g_autocomplete');
 
-    // Bias the autocomplete object to the user's geographical location,
-    // as supplied by the browser's 'navigator.geolocation' object.
-    function geolocate() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function (position) {
-                var geolocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                };
-                var circle = new google.maps.Circle({
-                    center: geolocation,
-                    radius: position.coords.accuracy,
-                });
-                autocomplete.setBounds(circle.getBounds());
-            });
+    if (!autocompleteInput) {
+        console.warn('Google Places: No .g_autocomplete input found in', mapsbarId);
+        return;
+    }
+
+    // Build options for PlaceAutocompleteElement
+    let apiOptions = {
+        types: ['geocode']
+    };
+
+    if (paramsElement) {
+        const optionsText = paramsElement.textContent.trim();
+        if (optionsText.length) {
+            try {
+                const parsedOptions = JSON.parse(optionsText);
+                // Map legacy options to new API format
+                if (parsedOptions.types) {
+                    apiOptions.types = parsedOptions.types;
+                }
+                if (parsedOptions.componentRestrictions && parsedOptions.componentRestrictions.country) {
+                    // New API uses includedRegionCodes instead of componentRestrictions
+                    const countries = parsedOptions.componentRestrictions.country;
+                    apiOptions.includedRegionCodes = Array.isArray(countries) ? countries : [countries];
+                }
+            } catch (e) {
+                console.warn('Google Places: Failed to parse options', e);
+            }
         }
     }
 
-    function setGoogleBar(element) {
+    // Map legacy 'types' format to new 'includedPrimaryTypes' if needed
+    // The new API accepts: 'geocode', 'address', 'establishment', 'regions', 'cities'
+    const typeMapping = {
+        'geocode': 'geocode',
+        'address': 'address',
+        'establishment': 'establishment',
+        '(regions)': 'regions',
+        '(cities)': 'cities'
+    };
 
-        let mapsbar_id = element.attr('id'),
-            autocomplete,
-            componentForm = {
-                street_number: 'long_name',
-                route: 'long_name',
-                locality: 'long_name',
-                administrative_area_level_1: 'long_name',
-                administrative_area_level_2: 'long_name',
-                country: 'long_name',
-                postal_code: 'short_name',
-                regions: 'long_name',
-            },
-            google_places_params = $('#params_' + mapsbar_id),
-            api_options = {types: ['geocode']};
+    if (apiOptions.types) {
+        const mappedTypes = apiOptions.types.map(t => typeMapping[t] || t);
+        apiOptions.includedPrimaryTypes = mappedTypes;
+        delete apiOptions.types;
+    }
 
-        if (google_places_params.length) {
-            let options = $.trim(google_places_params.text());
-            if (options.length) {
-                api_options = JSON.parse(options);
+    // Get current input value and placeholder
+    const currentValue = autocompleteInput.value;
+    const placeholder = autocompleteInput.getAttribute('placeholder') || '';
+    const inputName = autocompleteInput.getAttribute('name');
+    const inputId = autocompleteInput.getAttribute('id');
+
+    // Create the PlaceAutocompleteElement with placeholder attribute
+    const placeAutocomplete = new PlaceAutocompleteElement(apiOptions);
+
+    // Set placeholder attribute directly on the element (supported by the component)
+    placeAutocomplete.setAttribute('placeholder', placeholder);
+
+    // Style the autocomplete element - light color scheme, no dark border
+    placeAutocomplete.style.cssText = 'width: 100%; color-scheme: light; border: 1px solid #dee2e6; border-radius: 0.375rem;';
+
+    // Create a hidden input to store the text_address value for form submission
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = inputName;
+    hiddenInput.value = currentValue;
+    hiddenInput.id = inputId + '_hidden';
+
+    // Replace the original input with the PlaceAutocompleteElement
+    const inputParent = autocompleteInput.parentNode;
+    inputParent.insertBefore(placeAutocomplete, autocompleteInput);
+    inputParent.insertBefore(hiddenInput, autocompleteInput);
+    autocompleteInput.remove();
+
+    // Try to set existing value in the internal input (closed shadow DOM workaround)
+    if (currentValue) {
+        // Wait for the component to render, then try to access internal input
+        setTimeout(() => {
+            // Try to find internal input via undocumented property (may break in future)
+            const internalProps = Object.keys(placeAutocomplete).filter(k =>
+                placeAutocomplete[k] &&
+                typeof placeAutocomplete[k] === 'object' &&
+                placeAutocomplete[k].tagName === 'INPUT'
+            );
+
+            if (internalProps.length > 0) {
+                placeAutocomplete[internalProps[0]].value = currentValue;
+            } else {
+                // Fallback: try common undocumented property names
+                for (const prop of ['Dg', 'Fg', 'Eg', 'Hg', 'input']) {
+                    if (placeAutocomplete[prop] && placeAutocomplete[prop].setAttribute) {
+                        try {
+                            placeAutocomplete[prop].value = currentValue;
+                            break;
+                        } catch (e) {}
+                    }
+                }
             }
+        }, 100);
+    }
+
+    // Component mapping for address extraction
+    const componentForm = {
+        street_number: 'longText',
+        route: 'longText',
+        locality: 'longText',
+        administrative_area_level_1: 'longText',
+        administrative_area_level_2: 'longText',
+        country: 'longText',
+        postal_code: 'shortText'
+    };
+
+    // Listen for place selection
+    placeAutocomplete.addEventListener('gmp-select', async (event) => {
+        const { placePrediction } = event;
+
+        if (!placePrediction) {
+            return;
         }
-        api_options.language = 'fr';
-        console.log(api_options, 'API Options');
-        autocomplete = new google.maps.places.Autocomplete(element.find('.g_autocomplete')[0], api_options);
 
-        google.maps.event.addListener(autocomplete, 'place_changed', function () {
+        // Convert to Place and fetch detailed fields
+        const place = placePrediction.toPlace();
 
-            element.find('input').not('.g_autocomplete').val('');
+        try {
+            await place.fetchFields({
+                fields: [
+                    'displayName',
+                    'formattedAddress',
+                    'addressComponents',
+                    'location'
+                ]
+            });
 
-            // Get the place details from the autocomplete object.
-            var place = autocomplete.getPlace();
-            console.log(place);
+            // Clear all previous values except the autocomplete
+            clearAddressFields(element);
 
-            // element.find('.lockable').prop('readonly', false);
+            // Update hidden input with formatted address
+            hiddenInput.value = place.formattedAddress || '';
 
-            for (var component in componentForm) {
-                element.find('.' + component).val('').prop('disabled', false);
-            }
-
-            let country_code = element.find('.country_code').first();
-            country_code.val('').prop('disabled', false);
+            // Process address components
+            const addressComponents = place.addressComponents || [];
             let address = [];
 
-            // Get each component of the address from the place details
-            // and fill the corresponding field on the form.
-            for (var i = 0; i < place.address_components.length; i++) {
+            addressComponents.forEach(component => {
+                const types = component.types || [];
 
-                let addressType = place.address_components[i].types[0];
+                types.forEach(addressType => {
+                    if (componentForm[addressType]) {
+                        const valueKey = componentForm[addressType];
+                        const value = component[valueKey] || component.longText || '';
+                        const fieldElement = element.querySelector('.' + addressType);
 
-                if (componentForm[addressType]) {
-                    var val = place.address_components[i][componentForm[addressType]];
-                    element.find('.' + addressType).val(val);
+                        if (fieldElement) {
+                            fieldElement.value = value;
+                            fieldElement.disabled = false;
+                        }
+                    }
+
+                    // Build street address
+                    if (addressType === 'street_number' || addressType === 'route') {
+                        address.push(component.longText || '');
+                    }
+
+                    // Handle country code separately
+                    if (addressType === 'country') {
+                        const countryCodeField = element.querySelector('.country_code');
+                        if (countryCodeField) {
+                            countryCodeField.value = component.shortText || '';
+                            countryCodeField.disabled = false;
+                        }
+                    }
+
+                    // Handle continent if present
+                    if (addressType === 'continent') {
+                        const continentField = element.querySelector('.continent');
+                        if (continentField) {
+                            continentField.value = component.longText || '';
+                            const event = new Event('change', { bubbles: true });
+                            continentField.dispatchEvent(event);
+                        }
+                    }
+                });
+            });
+
+            // Set address type from first component
+            if (addressComponents.length > 0 && addressComponents[0].types && addressComponents[0].types.length > 0) {
+                const addressTypeField = element.querySelector('.address_type');
+                if (addressTypeField) {
+                    addressTypeField.value = addressComponents[0].types[0];
                 }
-                if (addressType == 'street_number' || addressType == 'route') {
-                    address.push(place.address_components[i].long_name);
-                }
-
-                if (addressType === 'country') {
-                    country_code.val(place.address_components[i].short_name);
-                }
-
-                if (addressType === 'continent') {
-                    element.find('.continent').first().val(place.address_components[i].long_name).change();
-                }
-
-                element.find('.address_type').val(place.address_components[0].types[0]);
-
             }
 
-            element.find('.wa_geo_lat').val(place.geometry.location.lat()).change();
-            element.find('.wa_geo_lon').val(place.geometry.location.lng()).change();
+            // Set lat/lng
+            if (place.location) {
+                const latField = element.querySelector('.wa_geo_lat');
+                const lonField = element.querySelector('.wa_geo_lon');
 
-            var callback = element.parent().data('callback');
-            if (callback != undefined) {
-                var fn = window[callback];
-                if (typeof fn === 'function') {
-                    fn(element);
+                if (latField) {
+                    latField.value = place.location.lat();
+                    const event = new Event('change', { bubbles: true });
+                    latField.dispatchEvent(event);
+                }
+
+                if (lonField) {
+                    lonField.value = place.location.lng();
+                    const event = new Event('change', { bubbles: true });
+                    lonField.dispatchEvent(event);
                 }
             }
-        });
 
-        element.find('.g_autocomplete').change(function () {
-            element.find('.lockable').prop('readonly', !$.trim($(this).val()).length > 0);
-        });
+            // Execute callback if defined
+            const callback = element.parentElement?.dataset?.callback;
+            if (callback && typeof window[callback] === 'function') {
+                window[callback](element);
+            }
 
-    }
+        } catch (error) {
+            console.error('Google Places: Error fetching place details', error);
+        }
+    });
 
-    const metaframeworkGooglePlaces = $('.gmapsbar');
+    // Handle errors
+    placeAutocomplete.addEventListener('gmp-error', (event) => {
+        console.error('Google Places Autocomplete error:', event);
+    });
+}
 
-    if (metaframeworkGooglePlaces.length) {
-        metaframeworkGooglePlaces.each(function () {
-            setGoogleBar($(this));
-        });
-    }
+function clearAddressFields(element) {
+    const fieldsToReset = [
+        'street_number',
+        'route',
+        'locality',
+        'administrative_area_level_1',
+        'administrative_area_level_2',
+        'country',
+        'country_code',
+        'postal_code'
+    ];
+
+    fieldsToReset.forEach(fieldClass => {
+        const field = element.querySelector('.' + fieldClass);
+        if (field) {
+            field.value = '';
+            field.disabled = false;
+        }
+    });
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeGooglePlaces);
+} else {
+    initializeGooglePlaces();
 }
