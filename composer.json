@@ -1,9 +1,8 @@
 {
   "name": "aboleon/metaframework-inputable",
   "description": "Reusable form input components for Laravel applications",
-  "version": "0.1.0",
   "type": "library",
-  "license": "proprietary",
+  "license": "MIT",
   "require": {
     "php": "^8.3",
     "illuminate/support": "^11.0|^12.0",
