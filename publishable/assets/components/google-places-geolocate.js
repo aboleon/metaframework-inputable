@@ -162,6 +162,11 @@ function setupGooglePlacesBar(element, PlaceAutocompleteElement) {
             // Update hidden input with formatted address
             hiddenInput.value = place.formattedAddress || '';
 
+            const placeIdField = element.querySelector('.place_id');
+            if (placeIdField) {
+                placeIdField.value = placePrediction.placeId || placePrediction.id || place.id || place.placeId || '';
+            }
+
             // Process address components
             const addressComponents = place.addressComponents || [];
             let address = [];
