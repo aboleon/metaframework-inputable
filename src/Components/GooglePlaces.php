@@ -38,7 +38,7 @@ class GooglePlaces extends Component
      */
     public function __construct(
         public GooglePlacesInterface $geo,
-        public string $field = 'wa_geo',
+        public string $field = 'mfw_geo',
         public string $random_id = '',
         public array $params = [],
         public string $placeholder = '',

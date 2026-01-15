@@ -321,7 +321,7 @@ Address autocomplete with geolocation using Google Places API.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `geo` | GooglePlacesInterface | required | Geo data object |
-| `field` | string | `'wa_geo'` | Form field prefix |
+| `field` | string | `'mfw_geo'` | Form field prefix |
 | `label` | string | `null` | Component label |
 | `placeholder` | string | `''` | Search input placeholder |
 | `notice` | string | `null` | Help text |

@@ -104,9 +104,9 @@
                     readonly/>
         </div>
     </div>
-    <input type="hidden" class="wa_geo_lat" name="{{ $field }}[lat]"
+    <input type="hidden" class="mfw_geo_lat" name="{{ $field }}[lat]"
            value="{{ $error ? old($field.'.lat') : ($geo->lat ?? '') }}"/>
-    <input type="hidden" class="wa_geo_lon" name="{{ $field }}[lon]"
+    <input type="hidden" class="mfw_geo_lon" name="{{ $field }}[lon]"
            value="{{ $error ? old($field.'.lon') : ($geo->lon ?? '') }}"/>
     <input type="hidden" class="address_type" name="{{ $field }}[address_type]"/>
     <input type="hidden" class="continent" name="{{ $field }}[continent]"/>
