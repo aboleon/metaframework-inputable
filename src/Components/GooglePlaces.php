@@ -6,6 +6,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\Component;
+use InvalidArgumentException;
 use MetaFramework\Inputable\Contracts\GooglePlacesInterface;
 
 class GooglePlaces extends Component
@@ -16,6 +17,8 @@ class GooglePlaces extends Component
      *      [types => (cities)]
      */
 
+    public GooglePlacesInterface $model;
+    public GooglePlacesInterface $geo;
     public Collection $required;
     public ?string $defaultTextAdress = null;
     private array $readonly = [
@@ -26,7 +29,8 @@ class GooglePlaces extends Component
     ];
 
     /**
-     * @param  GooglePlacesInterface  $geo
+     * @param  GooglePlacesInterface|null  $model
+     * @param  GooglePlacesInterface|null  $geo
      * Hide some fields:
      * administrative_area_level_1
      * administrative_area_level_1_short
@@ -37,7 +41,8 @@ class GooglePlaces extends Component
      * street_number
      */
     public function __construct(
-        public GooglePlacesInterface $geo,
+        ?GooglePlacesInterface $model = null,
+        ?GooglePlacesInterface $geo = null,
         public string $field = 'mfw_geo',
         public string $random_id = '',
         public array $params = [],
@@ -52,9 +57,16 @@ class GooglePlaces extends Component
             'country_code',
         ],
     ) {
+        $resolvedModel = $model ?? $geo;
+        if (! $resolvedModel) {
+            throw new InvalidArgumentException('GooglePlaces requires a model (or geo) instance.');
+        }
+
+        $this->model             = $resolvedModel;
+        $this->geo               = $resolvedModel;
         $this->random_id         = Str::random(4);
         $this->required          = collect($this->params['required'] ?? []);
-        $this->defaultTextAdress = $this->geo->text_address ?? ($this->geo->locality ?? null);
+        $this->defaultTextAdress = $this->model->text_address ?? ($this->model->locality ?? null);
     }
 
     public function render(): Renderable
