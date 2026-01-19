@@ -108,6 +108,8 @@
            value="{{ $error ? old($field.'.lat') : ($geo->lat ?? '') }}"/>
     <input type="hidden" class="mfw_geo_lon" name="{{ $field }}[lon]"
            value="{{ $error ? old($field.'.lon') : ($geo->lon ?? '') }}"/>
+    <input type="hidden" class="place_id" name="{{ $field }}[place_id]"
+           value="{{ $error ? old($field.'.place_id') : ($geo->place_id ?? '') }}"/>
     <input type="hidden" class="address_type" name="{{ $field }}[address_type]"/>
     <input type="hidden" class="continent" name="{{ $field }}[continent]"/>
 </div>

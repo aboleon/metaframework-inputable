@@ -160,7 +160,8 @@ function setupGooglePlacesBar(element, PlaceAutocompleteElement) {
             clearAddressFields(element);
 
             // Update hidden input with formatted address
-            hiddenInput.value = place.formattedAddress || '';
+            const predictionText = placePrediction?.text?.text || placePrediction?.text || '';
+            hiddenInput.value = predictionText || place.formattedAddress || '';
 
             const placeIdField = element.querySelector('.place_id');
             if (placeIdField) {
@@ -220,6 +221,15 @@ function setupGooglePlacesBar(element, PlaceAutocompleteElement) {
                 }
             }
 
+            const localizedLocality = extractLocalityFromPrediction(placePrediction, element);
+            if (localizedLocality) {
+                const localityField = element.querySelector('.locality');
+                if (localityField) {
+                    localityField.value = localizedLocality;
+                    localityField.disabled = false;
+                }
+            }
+
             // Set lat/lng
             if (place.location) {
                 const latField = element.querySelector('.mfw_geo_lat');
@@ -253,6 +263,50 @@ function setupGooglePlacesBar(element, PlaceAutocompleteElement) {
     placeAutocomplete.addEventListener('gmp-error', (event) => {
         console.error('Google Places Autocomplete error:', event);
     });
+}
+
+function extractLocalityFromPrediction(placePrediction, element) {
+    if (!placePrediction) {
+        return '';
+    }
+
+    const structured = placePrediction.structuredFormat || {};
+    const secondaryText = structured.secondaryText?.text || structured.secondaryText || '';
+    const mainText = structured.mainText?.text || structured.mainText || '';
+
+    let candidate = '';
+
+    if (secondaryText) {
+        const parts = secondaryText.split(',').map(part => part.trim()).filter(Boolean);
+        if (parts.length > 1) {
+            parts.pop();
+        }
+        candidate = parts.join(', ').trim();
+    }
+
+    if (!candidate && mainText) {
+        candidate = mainText.trim();
+    }
+
+    if (!candidate) {
+        return '';
+    }
+
+    const postalCodeField = element.querySelector('.postal_code');
+    if (postalCodeField && postalCodeField.value) {
+        const code = postalCodeField.value.trim();
+        if (code) {
+            candidate = candidate.replace(new RegExp('^' + escapeRegExp(code) + '\\s*'), '');
+        }
+    }
+
+    candidate = candidate.replace(/^[0-9]+\\s+/, '').trim();
+
+    return candidate;
+}
+
+function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
 }
 
 function clearAddressFields(element) {
