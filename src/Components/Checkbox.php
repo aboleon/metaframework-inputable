@@ -32,7 +32,7 @@ class Checkbox extends Component
             $this->isSelected = $this->affected->contains($this->value);
         }
 
-        $this->id   = Helpers::generateInputId($this->name . ($this->randomize ? '_' . Str::random(8) : ''));
+        $this->id   = Helpers::generateInputId(str_replace('_','-',$this->name) . ($this->randomize ? '_' . Str::random(8) : ''));
         $this->name = Helpers::generateInputName($this->name);
     }
 
