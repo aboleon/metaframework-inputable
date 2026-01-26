@@ -10,4 +10,6 @@ return [
     'region' => 'Регион',
     'country_code' => 'Код на държава',
     'country' => 'Държава',
+    'latitude' => 'Ширина',
+    'longitude' => 'Дължина',
 ];

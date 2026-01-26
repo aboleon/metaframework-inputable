@@ -10,4 +10,6 @@ return [
     'region' => 'Région',
     'country_code' => 'Code pays',
     'country' => 'Pays',
+    'latitude' => 'Latitude',
+    'longitude' => 'Longitude',
 ];
