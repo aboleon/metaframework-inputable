@@ -6,7 +6,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\Component;
-use MetaFramework\Inputable\Contracts\GooglePlacesInterface;
 
 class GooglePlaces extends Component
 {
@@ -17,8 +16,23 @@ class GooglePlaces extends Component
      */
     private const READONLY_FIELDS = ['street_number', 'route', 'locality', 'postal_code', 'country'];
     private const COORDINATE_FIELDS = ['lat', 'lon'];
+    private const MODEL_FIELDS = [
+        'text_address',
+        'street_number',
+        'route',
+        'postal_code',
+        'locality',
+        'administrative_area_level_1',
+        'administrative_area_level_1_short',
+        'administrative_area_level_2',
+        'country',
+        'country_code',
+        'lat',
+        'lon',
+        'place_id',
+    ];
 
-    public ?GooglePlacesInterface $geo = null;
+    public ?object $geo = null;
     public ?string $defaultTextAddress = null;
     public ?string $error = null;
     public Collection $required;
@@ -44,8 +58,14 @@ class GooglePlaces extends Component
         $this->required = collect($this->params['required'] ?? []);
         $resolvedModel = $model ?? $geo;
 
-        if (!$resolvedModel instanceof GooglePlacesInterface) {
-            $this->error = 'The passed model must implement ' . GooglePlacesInterface::class;
+        if (!$resolvedModel) {
+            $this->error = __('mfw-inputable-geo.missing_model');
+            return;
+        }
+
+        $missingFields = $this->validateModelFields($resolvedModel);
+        if ($missingFields) {
+            $this->error = __('mfw-inputable-geo.missing_fields', ['fields' => implode(', ', $missingFields)]);
             return;
         }
 
@@ -58,11 +78,25 @@ class GooglePlaces extends Component
         }
     }
 
+    private function validateModelFields(object $model): array
+    {
+        $missing = [];
+
+        foreach (self::MODEL_FIELDS as $field) {
+            if (!property_exists($model, $field) && !isset($model->$field)) {
+                $missing[] = $field;
+            }
+        }
+
+        return $missing;
+    }
+
     public function render(): View
     {
         if ($this->error) {
             return view('mfw-support::components.alert', [
                 'type' => 'warning',
+                'class' => '',
                 'message' => $this->error,
             ]);
         }

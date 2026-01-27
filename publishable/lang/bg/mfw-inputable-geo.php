@@ -12,4 +12,6 @@ return [
     'country' => 'Държава',
     'latitude' => 'Ширина',
     'longitude' => 'Дължина',
+    'missing_model' => 'Опитахте да използвате компонента Google Places, но не е подаден модел',
+    'missing_fields' => 'Моделът няма необходимите полета за Google Places: :fields',
 ];

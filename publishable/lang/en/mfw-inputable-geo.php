@@ -12,4 +12,6 @@ return [
     'country' => 'Country',
     'latitude' => 'Latitude',
     'longitude' => 'Longitude',
+    'missing_model' => 'You tried to use the Google Places component but no model was passed',
+    'missing_fields' => 'The model is missing required fields for Google Places: :fields',
 ];
