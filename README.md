@@ -36,6 +36,108 @@ php artisan vendor:publish --tag=mfw-inputable-translations
 php artisan vendor:publish --tag=mfw-inputable-assets
 ```
 
+## Artisan Commands
+
+### Create Standalone Geo Model
+
+Create a new model with Google Places fields and migration:
+
+```bash
+php artisan mfw-inputable:make-geo-model
+```
+
+This is an interactive command that prompts for:
+1. **Model name** - e.g., `Geo`, `Address`, or `Location/Geo` for subdirectory
+2. **Parent model** (optional) - e.g., `User` to add a foreign key constraint
+
+**What it creates:**
+
+1. A new model in `app/Models/` (or subdirectory)
+2. A migration with all Google Places fields:
+   - `text_address`, `street_number`, `route`, `postal_code`, `locality`
+   - `administrative_area_level_1`, `administrative_area_level_1_short`, `administrative_area_level_2`
+   - `country`, `country_code`
+   - `lat`, `lon` (decimal coordinates)
+   - `place_id`
+3. Optional foreign key to parent model with cascade delete
+
+**Example:**
+
+```bash
+$ php artisan mfw-inputable:make-geo-model
+
+ Enter the model name (e.g., "Geo" or "Location/Geo"):
+ > Address
+
+ Enter the parent model for the foreign key (e.g., "User" or leave empty for none):
+ > User
+
+Creating model: App\Models\Address
+Created migration: 2024_01_15_123456_create_addresses_table.php
+
+Done! Don't forget to run: php artisan migrate
+```
+
+---
+
+### Generate Geo Model for Existing Model
+
+Create a Google Places address model linked to an existing model:
+
+```bash
+php artisan mfw-inputable:make-geo-for-model {model?}
+```
+
+**Examples:**
+
+```bash
+# Interactive mode (will prompt for model path)
+php artisan mfw-inputable:make-geo-for-model
+
+# Standard app/Models path
+php artisan mfw-inputable:make-geo-for-model User
+php artisan mfw-inputable:make-geo-for-model Account/Client
+
+# Custom module path
+php artisan mfw-inputable:make-geo-for-model Modules/Hermes/Models/Zone
+```
+
+**What it does:**
+
+1. Creates a new `{Model}Address` model with:
+   - `belongsTo()` relationship to the parent model
+   - Proper namespace based on parent model location
+
+2. Adds to the parent model:
+   - `hasOne()` relationship to the new address model
+   - Required `HasOne` import
+
+3. Creates a migration with:
+   - Foreign key constraint to the parent table
+   - All Google Places fields (text_address, street_number, route, postal_code, locality, etc.)
+   - Coordinates (lat, lon) and place_id
+
+**Example output for `Zone` model:**
+
+```php
+// Created: ZoneAddress model
+class ZoneAddress extends Model
+{
+    public function zone(): BelongsTo
+    {
+        return $this->belongsTo(Zone::class);
+    }
+}
+
+// Added to Zone model:
+public function zoneAddress(): HasOne
+{
+    return $this->hasOne(ZoneAddress::class);
+}
+```
+
+**Note:** The command automatically detects custom table names. If your model defines `protected $table = 'custom_table'`, the migration will use that table name for the foreign key constraint instead of Laravel's convention.
+
 ## Configuration
 
 After publishing, configure in `config/mfw-inputable.php`:
@@ -308,11 +410,12 @@ Address autocomplete with geolocation using Google Places API.
 
 ```blade
 <x-mfw-inputable::google-places
-    :geo="$address"
+    :model="$address"
     field="address"
     label="Address"
     :params="['required' => ['route', 'postal_code', 'locality']]"
     :hidden="['administrative_area_level_2']"
+    :showCoords="true"
 />
 ```
 
@@ -320,22 +423,28 @@ Address autocomplete with geolocation using Google Places API.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `geo` | GooglePlacesInterface | required | Geo data object |
+| `model` | object | required | Geo data model |
 | `field` | string | `'mfw_geo'` | Form field prefix |
 | `label` | string | `null` | Component label |
 | `placeholder` | string | `''` | Search input placeholder |
 | `notice` | string | `null` | Help text |
 | `params` | array | `[]` | Options (e.g., `['required' => [...]]`) |
-| `hidden` | array | `[...]` | Fields to hide |
+| `hidden` | array | `[...]` | Fields to hide (defaults: `administrative_area_level_1`, `administrative_area_level_1_short`, `administrative_area_level_2`, `country_code`) |
+| `showCoords` | bool | `false` | Show latitude/longitude fields |
+| `tag_required` | string | `'required'` | HTML attribute for required fields |
 
-**GooglePlacesInterface:**
+**Geo Model:**
 
-Your geo model should implement `GooglePlacesInterface` with these properties:
+Generate a geo model using the artisan command:
+
+```bash
+php artisan mfw-inputable:make-geo-for-model YourModel
+```
+
+Or create it manually. The model must have these properties:
 
 ```php
-use MetaFramework\Inputable\Contracts\GooglePlacesInterface;
-
-class Address implements GooglePlacesInterface
+class Address extends Model
 {
     public ?string $text_address;
     public ?string $street_number;
@@ -343,13 +452,17 @@ class Address implements GooglePlacesInterface
     public ?string $postal_code;
     public ?string $locality;
     public ?string $administrative_area_level_1;
+    public ?string $administrative_area_level_1_short;
     public ?string $administrative_area_level_2;
     public ?string $country;
     public ?string $country_code;
     public ?float $lat;
     public ?float $lon;
+    public ?string $place_id;
 }
 ```
+
+The component validates that all required fields exist on the model and displays an error if any are missing.
 
 ### Validation Error
 
@@ -516,14 +629,15 @@ Display validation error for a field.
     <h5>Warehouse Address</h5>
 
     <x-mfw-inputable::google-places
-        :geo="$product->warehouse ?? new \App\Models\Address()"
+        :model="$product->warehouse ?? new \App\Models\Address()"
         field="warehouse"
         label="Search address"
         :params="[
             'required' => ['route', 'postal_code', 'locality', 'country'],
             'componentRestrictions' => ['country' => ['fr', 'be', 'ch']]
         ]"
-        :hidden="['administrative_area_level_1_short', 'administrative_area_level_2']"
+        :hidden="['administrative_area_level_2']"
+        :showCoords="true"
     />
 
     <button type="submit" class="btn btn-primary">Save Product</button>

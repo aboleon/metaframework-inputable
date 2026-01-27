@@ -4,6 +4,8 @@ namespace MetaFramework\Inputable;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use MetaFramework\Inputable\Console\MakeGeoForModelCommand;
+use MetaFramework\Inputable\Console\MakeGooglePlacesModelCommand;
 use MetaFramework\Inputable\Support\InstallPublishablesCommand;
 
 class InputableServiceProvider extends ServiceProvider
@@ -33,9 +35,15 @@ class InputableServiceProvider extends ServiceProvider
             __DIR__ . '/../publishable/assets' => public_path('vendor/mfw-inputable'),
         ], 'mfw-inputable-assets');
 
+        $this->publishes([
+            __DIR__ . '/../publishable/stubs' => base_path('stubs/vendor/mfw-inputable'),
+        ], 'mfw-inputable-stubs');
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallPublishablesCommand::class,
+                MakeGooglePlacesModelCommand::class,
+                MakeGeoForModelCommand::class,
             ]);
         }
     }
