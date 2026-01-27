@@ -81,12 +81,39 @@ class GooglePlaces extends Component
         $missing = [];
 
         foreach (self::MODEL_FIELDS as $field) {
-            if (!property_exists($model, $field) && !isset($model->$field)) {
+            if (!$this->modelHasField($model, $field)) {
                 $missing[] = $field;
             }
         }
 
         return $missing;
+    }
+
+    private function modelHasField(object $model, string $field): bool
+    {
+        if (property_exists($model, $field)) {
+            return true;
+        }
+
+        if (isset($model->$field)) {
+            return true;
+        }
+
+        if (method_exists($model, 'getAttributes')) {
+            $attributes = $model->getAttributes();
+            if (is_array($attributes) && array_key_exists($field, $attributes)) {
+                return true;
+            }
+        }
+
+        if (method_exists($model, 'toArray')) {
+            $data = $model->toArray();
+            if (is_array($data) && array_key_exists($field, $data)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function render(): View
