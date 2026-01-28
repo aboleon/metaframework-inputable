@@ -4,8 +4,6 @@ namespace MetaFramework\Inputable;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use MetaFramework\Inputable\Console\MakeGeoForModelCommand;
-use MetaFramework\Inputable\Console\MakeGooglePlacesModelCommand;
 use MetaFramework\Inputable\Support\InstallPublishablesCommand;
 
 class InputableServiceProvider extends ServiceProvider
@@ -24,10 +22,6 @@ class InputableServiceProvider extends ServiceProvider
         Blade::componentNamespace('MetaFramework\\Inputable\\Components', 'mfw-inputable');
 
         $this->publishes([
-            __DIR__ . '/../publishable/config/mfw-inputable.php' => config_path('mfw-inputable.php'),
-        ], 'mfw-inputable-config');
-
-        $this->publishes([
             __DIR__ . '/../publishable/lang' => lang_path(),
         ], 'mfw-inputable-translations');
 
@@ -42,8 +36,6 @@ class InputableServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallPublishablesCommand::class,
-                MakeGooglePlacesModelCommand::class,
-                MakeGeoForModelCommand::class,
             ]);
         }
     }

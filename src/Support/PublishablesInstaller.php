@@ -17,7 +17,6 @@ class PublishablesInstaller
         $packagePath = dirname(__DIR__, 2);
 
         $resources = [
-            $packagePath . '/publishable/config/mfw-inputable.php' => config_path('mfw-inputable.php'),
             $packagePath . '/publishable/assets' => public_path('vendor/mfw-inputable'),
         ];
 

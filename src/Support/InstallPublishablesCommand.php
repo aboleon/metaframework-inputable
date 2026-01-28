@@ -8,7 +8,7 @@ class InstallPublishablesCommand extends Command
 {
     protected $signature = 'mfw-inputable:install {--force : Overwrite existing publishable resources}';
 
-    protected $description = 'Copy Metaframework Inputable publishable configuration, translations, and assets into the application';
+    protected $description = 'Copy Metaframework Inputable publishable translations and assets into the application';
 
     public function handle(): int
     {
@@ -37,4 +37,3 @@ class InstallPublishablesCommand extends Command
         return self::SUCCESS;
     }
 }
-
