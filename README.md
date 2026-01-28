@@ -1,6 +1,14 @@
 # MetaFramework Inputable
 
-A Laravel Blade component library for building forms with Bootstrap 5 styling. Part of the MetaFramework ecosystem.
+[![Tests](https://github.com/aboleon/metaframework-google-places/actions/workflows/tests.yml/badge.svg)](https://github.com/aboleon/metaframework-google-places/actions)
+[![codecov](https://codecov.io/gh/aboleon/metaframework-inputable/graph/badge.svg)](https://codecov.io/gh/aboleon/metaframework-inputable)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/aboleon/metaframework-inputable.svg?style=flat-square)](https://packagist.org/packages/aboleon/metaframework-inputable)
+[![Total Downloads](https://img.shields.io/packagist/dt/aboleon/metaframework-inputable.svg?style=flat-square)](https://packagist.org/packages/aboleon/metaframework-inputable)
+[![PHP Version](https://img.shields.io/packagist/php-v/aboleon/metaframework-inputable.svg?style=flat-square)](https://packagist.org/packages/aboleon/metaframework-inputable)
+[![License](https://img.shields.io/packagist/l/aboleon/metaframework-inputable.svg?style=flat-square)](https://packagist.org/packages/aboleon/metaframework-inputable)
+
+
+A Laravel Blade component library for building forms with Bootstrap 5 styling.
 
 ## Requirements
 
