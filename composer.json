@@ -21,9 +21,6 @@
       "providers": [
         "MetaFramework\\Inputable\\InputableServiceProvider"
       ]
-    },
-    "branch-alias": {
-      "dev-main": "0.1.x-dev"
     }
   },
   "minimum-stability": "dev",
