@@ -25,9 +25,10 @@
 
 <x-mfw-inputable::validation-error :field="$validation_id"/>
 
+
 @if(str_contains($class,'simplified') or str_contains($class, 'extended'))
     @pushonce('js')
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" integrity="sha512-VCEWnpOl7PIhbYMcb64pqGZYez41C2uws/M/mDdGPy+vtEJHd9BqbShE4/VNnnZdr7YCPOjd+CBmYca/7WWWCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/7.9.1/tinymce.min.js" integrity="sha512-09JpfVm/UE1F4k8kcVUooRJAxVMSfw/NIslGlWE/FGXb2uRO1Nt4BXAJ3LxPqNbO3Hccdu46qaBPp9wVpWAVhA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script id="tinymce_settings" src="{!! asset('vendor/mfw-inputable/js/tinymce/default_settings.js') !!}"></script>
         <script>
           if ($('textarea.extended').length) {
