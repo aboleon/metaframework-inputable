@@ -27,6 +27,7 @@
 
 @if(str_contains($class,'simplified') or str_contains($class, 'extended'))
     @pushonce('js')
+        <style>.tox.tox-tinymce.tox-edit-focus .tox-edit-area::before {border-color: #b4c4d0 !important;}</style>
         <script src="https://cdn.jsdelivr.net/npm/tinymce@8.3.2/tinymce.min.js"
                 integrity="sha256-7MK838XEuRxsjf+kLlySGcX6FL3X8UeAJeoQpIy0snc=" crossorigin="anonymous"></script>
         <script id="tinymce_settings"
