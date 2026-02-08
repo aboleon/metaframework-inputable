@@ -28,7 +28,7 @@
 
 @if(str_contains($class,'simplified') or str_contains($class, 'extended'))
     @pushonce('js')
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/7.9.1/tinymce.min.js" integrity="sha512-09JpfVm/UE1F4k8kcVUooRJAxVMSfw/NIslGlWE/FGXb2uRO1Nt4BXAJ3LxPqNbO3Hccdu46qaBPp9wVpWAVhA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdn.jsdelivr.net/npm/tinymce@8.3.2/tinymce.min.js" integrity="sha256-7MK838XEuRxsjf+kLlySGcX6FL3X8UeAJeoQpIy0snc=" crossorigin="anonymous"></script>
         <script id="tinymce_settings" src="{!! asset('vendor/mfw-inputable/js/tinymce/default_settings.js') !!}"></script>
         <script>
           if ($('textarea.extended').length) {

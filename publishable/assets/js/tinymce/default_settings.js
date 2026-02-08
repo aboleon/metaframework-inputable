@@ -3,6 +3,7 @@ function mfw_default_tinymce_settings(targets) {
     return {
         selector: targets,
         theme: 'silver',
+        license_key: 'gpl',
         width: '100%',
         height: 480,
         menubar: false,
@@ -15,7 +16,7 @@ function mfw_default_tinymce_settings(targets) {
         image_title: true,
         automatic_uploads: true,
         language: 'fr_FR',
-        language_url: baseHref + 'vendor/mfw/js/tinymce/langs/fr_FR.js',
+        language_url: baseHref + 'vendor/mfw-inputable/js/tinymce/langs/fr_FR.js',
         document_base_url: baseHref,
         relative_urls: false,
         remove_script_host: true,
