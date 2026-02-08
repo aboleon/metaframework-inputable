@@ -4,6 +4,7 @@ function mfw_simplified_tinymce_settings(targets) {
     return {
         selector: targets,
         theme: "silver",
+        license_key: 'gpl',
         width: '100%',
         menubar: false,
         entity_encoding: 'raw',

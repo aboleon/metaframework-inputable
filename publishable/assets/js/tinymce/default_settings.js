@@ -3,6 +3,7 @@ function mfw_default_tinymce_settings(targets) {
     return {
         selector: targets,
         theme: 'silver',
+        license_key: 'gpl',
         width: '100%',
         height: 480,
         menubar: false,
