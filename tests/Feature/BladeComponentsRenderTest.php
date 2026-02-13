@@ -164,6 +164,16 @@ class BladeComponentsRenderTest extends TestCase
         $this->assertStringContainsString('value="2025-01-01"', $html);
     }
 
+    public function test_datepicker_component_renders_json_config_when_array_is_provided(): void
+    {
+        $html = Blade::render(
+            '<x-mfw-inputable::datepicker name="start_date" :config="$config" />',
+            ['config' => ['minDate' => 'today', 'enableTime' => true]]
+        );
+
+        $this->assertStringContainsString('data-config="{&quot;minDate&quot;:&quot;today&quot;,&quot;enableTime&quot;:true}"', $html);
+    }
+
     public function test_input_date_mask_component_renders_placeholder_and_script_push(): void
     {
         $html = Blade::render(
