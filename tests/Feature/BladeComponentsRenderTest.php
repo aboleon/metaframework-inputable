@@ -49,7 +49,7 @@ class BladeComponentsRenderTest extends TestCase
         View::share('errors', $errors);
 
         $html = Blade::render(
-            '<x-mfw-inputable::textarea name="notes" label="Notes" :value="$value" :height="120" class="simplified" required />',
+            '<x-mfw-inputable::textarea name="notes" label="Notes" :value="$value" :height="120" class="simplified" required />@stack("js")',
             ['value' => 'Hello', 'errors' => $errors]
         );
 
@@ -57,6 +57,37 @@ class BladeComponentsRenderTest extends TestCase
         $this->assertStringContainsString('style="height:120px"', $html);
         $this->assertStringContainsString('>Hello</textarea>', $html);
         $this->assertStringContainsString('invalid-feedback d-block', $html);
+        $this->assertStringContainsString('tinymce.min.js', $html);
+    }
+
+    public function test_textarea_type_text_disables_tinymce_even_with_editor_class(): void
+    {
+        $html = Blade::render(
+            '<x-mfw-inputable::textarea name="notes" class="simplified" type="text" />@stack("js")'
+        );
+
+        $this->assertStringContainsString('class="form-control simplified"', $html);
+        $this->assertStringNotContainsString('tinymce.min.js', $html);
+    }
+
+    public function test_textarea_type_html_applies_simplified_when_no_editor_class_and_enables_tinymce(): void
+    {
+        $html = Blade::render(
+            '<x-mfw-inputable::textarea name="notes" type="html" />@stack("js")'
+        );
+
+        $this->assertStringContainsString('class="form-control simplified"', $html);
+        $this->assertStringContainsString('tinymce.min.js', $html);
+    }
+
+    public function test_textarea_type_markdown_disables_tinymce(): void
+    {
+        $html = Blade::render(
+            '<x-mfw-inputable::textarea name="notes" class="extended" type="markdown" />@stack("js")'
+        );
+
+        $this->assertStringContainsString('class="form-control extended"', $html);
+        $this->assertStringNotContainsString('tinymce.min.js', $html);
     }
 
     public function test_select_component_renders_nullable_option_and_selected_value(): void

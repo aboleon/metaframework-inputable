@@ -4,7 +4,7 @@
     </label>
 @endif
 <textarea name="{{ $name }}"
-          class="form-control {{ is_array($class) ? explode(' ', $class) : $class }}"
+          class="form-control {{ $class }}"
           id="{{ $id }}"
 {!! !empty($height) ? 'style="height:'.$height.'px"' : '' !!}
 @forelse($params as $param => $setting)
@@ -25,7 +25,7 @@
 
 <x-mfw-inputable::validation-error :field="$validation_id"/>
 
-@if(str_contains($class,'simplified') or str_contains($class, 'extended'))
+@if($shouldActivateTinymce)
     @pushonce('js')
         <style>.tox.tox-tinymce.tox-edit-focus .tox-edit-area::before {border-color: #b4c4d0 !important;}</style>
         <script src="https://cdn.jsdelivr.net/npm/tinymce@8.3.2/tinymce.min.js"
