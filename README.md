@@ -125,7 +125,7 @@ Numeric input with constraints.
 
 ### Textarea
 
-Textarea with optional TinyMCE rich text editor.
+Textarea with optional TinyMCE rich text editor and optional runtime content type selector.
 
 ```blade
 {{-- Plain textarea --}}
@@ -152,7 +152,30 @@ Textarea with optional TinyMCE rich text editor.
     :height="400"
     :value="$article->content"
 />
+
+{{-- Runtime content type selector (HTML / Markdown / Text) --}}
+<x-mfw-inputable::textarea
+    name="body"
+    label="Body"
+    :value="old('body', $page->body)"
+    content-type="html"
+/>
 ```
+
+`contentType` accepts `bool|string`:
+
+- `false` (default): no radios; TinyMCE behavior relies only on textarea classes (`simplified` / `extended`)
+- `true`: render radios and infer initial content type from classes (`html` when TinyMCE class is present, otherwise `text`)
+- `'html' | 'markdown' | 'text'`: render radios with that initial selected value
+- any other string: render radios and infer initial content type from classes (same fallback as `true`)
+
+When radios are enabled, the component renders a synced hidden input named:
+
+```text
+mfw-inputable[content_type][{textarea_name}]
+```
+
+TinyMCE is enabled only when the selected content type is `html`. Switching away from `html` removes TinyMCE at runtime and converts the editor content back to textarea text with preserved line breaks.
 
 **Parameters:**
 
@@ -162,9 +185,11 @@ Textarea with optional TinyMCE rich text editor.
 | `value` | string | `null` | Content |
 | `label` | string | `null` | Field label |
 | `class` | string | `''` | CSS classes (`simplified` or `extended` for TinyMCE) |
+| `contentType` | bool|string | `false` | `false` disables radios; `true`/string enables radios and sets or infers content type |
 | `height` | int | `200` | Height in pixels |
 | `required` | bool | `false` | Required field |
 | `readonly` | bool | `false` | Read-only field |
+| `params` | array | `[]` | Extra HTML attributes |
 
 ### Select
 
@@ -474,6 +499,7 @@ Published to `public/vendor/mfw-inputable/`:
 - **Flatpickr** - Date picker library with themes
 - **TinyMCE** - Rich text editor
 - **Input Date Mask** - Date masking script
+- **Textarea Content Type Runtime** - TinyMCE/content-type toggle script (`components/textarea-content-type.js`)
 
 ## License
 

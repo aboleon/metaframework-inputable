@@ -18,6 +18,20 @@ class Textarea extends Component
 
     public bool $shouldActivateTinymce = false;
 
+    public bool $contentTypeEnabled = false;
+
+    public string $contentTypeValue = '';
+
+    public string $contentTypeHiddenName = '';
+
+    public string $contentTypeHiddenId = '';
+
+    public string $contentTypeRadioName = '';
+
+    public array $contentTypeOptions = [];
+
+    public string $tinymcePreset = 'simplified';
+
     public function __construct(
         public string $name,
         public ?string $value = null,
@@ -28,17 +42,17 @@ class Textarea extends Component
         public bool $required = false,
         public bool $readonly = false,
         public bool $randomize = false,
-        public ?string $type = null,
+        public bool|string $contentType = false,
     ) {
         $this->id            = Helpers::generateInputId($this->name . ($this->randomize ? '_' . Str::random(8) : ''));
         $this->validation_id = Helpers::generateValidationId($this->name);
         $this->name          = Helpers::generateInputName($this->name);
-        $this->hydrateTypeFromParams();
 
         if (array_key_exists('height', $this->params)) {
             $this->height = $this->params['height'];
         }
 
+        $this->removeLegacyTypeParam();
         $this->configureContentTypeBehavior();
     }
 
@@ -52,36 +66,65 @@ class Textarea extends Component
 
     private function configureContentTypeBehavior(): void
     {
-        $resolvedType = ContentTypeEnum::resolve($this->type);
         $classTokens = $this->normalizeClassTokens($this->class);
+        $this->tinymcePreset = $this->detectTinymcePreset($classTokens) ?? 'simplified';
         $hasEditorClass = $this->hasEditorClass($classTokens);
+        $this->contentTypeEnabled = $this->shouldEnableContentTypeSelector();
 
-        if ($resolvedType === ContentTypeEnum::HTML && !$hasEditorClass) {
-            $classTokens[] = 'simplified';
-            $hasEditorClass = true;
+        if ($this->contentTypeEnabled) {
+            $effectiveType = $this->resolveContentTypeValueFromParam() ?? ($hasEditorClass
+                ? ContentTypeEnum::HTML->value
+                : ContentTypeEnum::default());
+
+            if ($effectiveType === ContentTypeEnum::HTML->value && !$hasEditorClass) {
+                $classTokens[] = $this->tinymcePreset;
+                $hasEditorClass = true;
+            }
+
+            $this->contentTypeValue = $effectiveType;
+            $this->contentTypeOptions = [
+                ContentTypeEnum::HTML->value => 'HTML',
+                ContentTypeEnum::MARKDOWN->value => 'Markdown',
+                ContentTypeEnum::TEXT->value => 'Text',
+            ];
+            $this->contentTypeHiddenName = sprintf('mfw-inputable[content_type][%s]', $this->name);
+            $this->contentTypeHiddenId = sprintf('%s_content_type_hidden', $this->id);
+            $this->contentTypeRadioName = sprintf('%s_content_type_selector', $this->id);
         }
 
-        $this->shouldActivateTinymce = match ($resolvedType) {
-            ContentTypeEnum::TEXT, ContentTypeEnum::MARKDOWN => false,
-            ContentTypeEnum::HTML => true,
-            null => $hasEditorClass,
-        };
-
-        $this->type = $resolvedType?->value;
+        $this->shouldActivateTinymce = $this->contentTypeEnabled
+            ? $this->contentTypeValue === ContentTypeEnum::HTML->value
+            : $hasEditorClass;
         $this->class = implode(' ', $classTokens);
     }
 
-    private function hydrateTypeFromParams(): void
+    private function removeLegacyTypeParam(): void
     {
         if (array_key_exists('type', $this->params)) {
-            if ($this->type === null || trim($this->type) === '') {
-                $this->type = is_scalar($this->params['type'])
-                    ? (string)$this->params['type']
-                    : null;
-            }
-
             unset($this->params['type']);
         }
+    }
+
+    private function shouldEnableContentTypeSelector(): bool
+    {
+        return $this->contentType === true || is_string($this->contentType);
+    }
+
+    private function resolveContentTypeValueFromParam(): ?string
+    {
+        if (!is_string($this->contentType)) {
+            return null;
+        }
+
+        $normalized = strtolower(trim($this->contentType));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return in_array($normalized, ContentTypeEnum::values(), true)
+            ? $normalized
+            : null;
     }
 
     private function normalizeClassTokens(string|array $class): array
@@ -102,5 +145,18 @@ class Textarea extends Component
     {
         return in_array('simplified', $classTokens, true)
             || in_array('extended', $classTokens, true);
+    }
+
+    private function detectTinymcePreset(array $classTokens): ?string
+    {
+        if (in_array('extended', $classTokens, true)) {
+            return 'extended';
+        }
+
+        if (in_array('simplified', $classTokens, true)) {
+            return 'simplified';
+        }
+
+        return null;
     }
 }
