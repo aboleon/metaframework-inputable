@@ -3,16 +3,13 @@
         {{ $label . ($required ? ' *' : '') }}
     </label>
 @endif
-@if ($contentTypeEnabled)
-    <x-mfw-inputable::radio :name="$contentTypeRadioName" :values="$contentTypeOptions" :affected="$contentTypeValue" class="mb-2 p-0" :randomize="false"
-        :params="['data-mfw-inputable-content-type-radio' => $id]" />
-    <input type="hidden" id="{{ $contentTypeHiddenId }}" name="{{ $contentTypeHiddenName }}"
-        value="{{ $contentTypeValue }}" data-mfw-inputable-content-type-hidden="{{ $id }}">
-@endif
 <textarea name="{{ $name }}" class="form-control {{ $class }}" id="{{ $id }}"
     {!! !empty($height) ? 'style="height:' . $height . 'px"' : '' !!}
-    @if ($contentTypeEnabled) data-mfw-inputable-content-type-enabled="1"
-          data-mfw-inputable-tinymce-preset="{{ $tinymcePreset }}" @endif
+    @if ($shouldUseCherry) data-mfw-inputable-cherry="1"
+        data-mfw-inputable-cherry-container="{{ $cherry_container_id }}"
+        data-mfw-inputable-cherry-height="{{ $height }}" @endif
+    @if ($shouldActivateTinymce) data-mfw-inputable-editor-mode="html"
+        data-mfw-inputable-tinymce-preset="{{ $tinymcePreset }}" @endif
     @forelse($params as $param => $setting)
     @if (is_string($param))
         {{ $param }}="{!! $setting !!}"
@@ -22,10 +19,52 @@
 @empty
 @endforelse
     @if ($required) required @endif @if ($readonly) readonly @endif>{!! $value !!}</textarea>
+@if ($shouldUseCherry)
+    <div id="{{ $cherry_container_id }}" class="mfw-inputable-cherry-host"
+        style="display:none; height: {{ $height }}px;">
+    </div>
+@endif
 
 <x-mfw-inputable::validation-error :field="$validation_id" />
 
-@if ($shouldActivateTinymce || $contentTypeEnabled)
+@if ($shouldUseCherry)
+    @pushonce('js')
+        <style>
+            .mfw-inputable-cherry-source {
+                display: none !important;
+            }
+
+            .mfw-inputable-cherry-host {
+                display: none;
+                min-height: 160px;
+                resize: vertical;
+                overflow: visible;
+            }
+
+            .mfw-inputable-cherry-host.is-ready {
+                display: block;
+            }
+
+            .mfw-inputable-cherry-host .cherry {
+                border: 1px solid #ced4da;
+                border-radius: 0.375rem;
+                height: 100% !important;
+                overflow: visible;
+            }
+
+            .mfw-inputable-cherry-host .cherry-toolbar {
+                overflow: visible;
+            }
+        </style>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cherry-markdown@0.10.3/dist/cherry-markdown.min.css"
+            integrity="sha256-b7u2GY284ovANZf2TRV4x/orn4H8Rr8+EqhmsenHTi4=" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/cherry-markdown@0.10.3/dist/cherry-markdown.min.js"
+            integrity="sha256-ZE25m+gKuBt96p3D+KuG9CvtfMU9V7+edi7jyo58BUQ=" crossorigin="anonymous"></script>
+        <script src="{!! asset('vendor/mfw-inputable/components/textarea-cherry.js') !!}"></script>
+    @endpushonce
+@endif
+
+@if ($shouldActivateTinymce)
     @pushonce('js')
         <style>
             .tox.tox-tinymce.tox-edit-focus .tox-edit-area::before {

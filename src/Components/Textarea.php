@@ -16,21 +16,13 @@ class Textarea extends Component
 
     private string $validation_id;
 
-    public bool $shouldActivateTinymce = false;
-
-    public bool $contentTypeEnabled = false;
-
-    public string $contentTypeValue = '';
-
-    public string $contentTypeHiddenName = '';
-
-    public string $contentTypeHiddenId = '';
-
-    public string $contentTypeRadioName = '';
-
-    public array $contentTypeOptions = [];
+    private string $cherryContainerId;
 
     public string $tinymcePreset = 'simplified';
+
+    public bool $shouldUseCherry = false;
+
+    public bool $shouldActivateTinymce = false;
 
     public function __construct(
         public string $name,
@@ -39,92 +31,52 @@ class Textarea extends Component
         public string|array $class = '',
         public array $params = [],
         public int $height = 200,
+        public string $mode = ContentTypeEnum::TEXT->value,
         public bool $required = false,
         public bool $readonly = false,
         public bool $randomize = false,
-        public bool|string $contentType = false,
+        public bool|string|null $contentType = null,
     ) {
-        $this->id            = Helpers::generateInputId($this->name . ($this->randomize ? '_' . Str::random(8) : ''));
+        $this->id = Helpers::generateInputId($this->name . ($this->randomize ? '_' . Str::random(8) : ''));
+        $this->cherryContainerId = sprintf('%s_cherry', $this->id);
         $this->validation_id = Helpers::generateValidationId($this->name);
-        $this->name          = Helpers::generateInputName($this->name);
+        $this->name = Helpers::generateInputName($this->name);
+
+        $classTokens = $this->normalizeClassTokens($this->class);
+        $this->tinymcePreset = $this->detectTinymcePreset($classTokens) ?? 'simplified';
+        $this->class = implode(' ', $classTokens);
 
         if (array_key_exists('height', $this->params)) {
-            $this->height = $this->params['height'];
+            $this->height = (int) $this->params['height'];
         }
 
-        $this->removeLegacyTypeParam();
-        $this->configureContentTypeBehavior();
+        $this->mode = $this->resolveMode($classTokens);
+        $this->shouldUseCherry = !$this->readonly && $this->mode === ContentTypeEnum::MARKDOWN->value;
+        $this->shouldActivateTinymce = !$this->readonly && $this->mode === ContentTypeEnum::HTML->value;
     }
 
     public function render(): Renderable
     {
         return view('mfw-inputable::components.textarea')->with([
             'id' => $this->id,
+            'cherry_container_id' => $this->cherryContainerId,
             'validation_id' => $this->validation_id,
         ]);
     }
 
-    private function configureContentTypeBehavior(): void
+    private function resolveMode(array $classTokens): string
     {
-        $classTokens = $this->normalizeClassTokens($this->class);
-        $this->tinymcePreset = $this->detectTinymcePreset($classTokens) ?? 'simplified';
-        $hasEditorClass = $this->hasEditorClass($classTokens);
-        $this->contentTypeEnabled = $this->shouldEnableContentTypeSelector();
-
-        if ($this->contentTypeEnabled) {
-            $effectiveType = $this->resolveContentTypeValueFromParam() ?? ($hasEditorClass
+        if ($this->contentType === true) {
+            return $this->hasEditorClass($classTokens)
                 ? ContentTypeEnum::HTML->value
-                : ContentTypeEnum::default());
-
-            if ($effectiveType === ContentTypeEnum::HTML->value && !$hasEditorClass) {
-                $classTokens[] = $this->tinymcePreset;
-                $hasEditorClass = true;
-            }
-
-            $this->contentTypeValue = $effectiveType;
-            $this->contentTypeOptions = [
-                ContentTypeEnum::HTML->value => 'HTML',
-                ContentTypeEnum::MARKDOWN->value => 'Markdown',
-                ContentTypeEnum::TEXT->value => 'Text',
-            ];
-            $this->contentTypeHiddenName = sprintf('mfw-inputable[content_type][%s]', $this->name);
-            $this->contentTypeHiddenId = sprintf('%s_content_type_hidden', $this->id);
-            $this->contentTypeRadioName = sprintf('%s_content_type_selector', $this->id);
+                : ContentTypeEnum::default();
         }
 
-        $this->shouldActivateTinymce = $this->contentTypeEnabled
-            ? $this->contentTypeValue === ContentTypeEnum::HTML->value
-            : $hasEditorClass;
-        $this->class = implode(' ', $classTokens);
-    }
-
-    private function removeLegacyTypeParam(): void
-    {
-        if (array_key_exists('type', $this->params)) {
-            unset($this->params['type']);
-        }
-    }
-
-    private function shouldEnableContentTypeSelector(): bool
-    {
-        return $this->contentType === true || is_string($this->contentType);
-    }
-
-    private function resolveContentTypeValueFromParam(): ?string
-    {
-        if (!is_string($this->contentType)) {
-            return null;
+        if (is_string($this->contentType)) {
+            return ContentTypeEnum::resolve($this->contentType)?->value ?? ContentTypeEnum::default();
         }
 
-        $normalized = strtolower(trim($this->contentType));
-
-        if ($normalized === '') {
-            return null;
-        }
-
-        return in_array($normalized, ContentTypeEnum::values(), true)
-            ? $normalized
-            : null;
+        return ContentTypeEnum::resolve($this->mode)?->value ?? ContentTypeEnum::default();
     }
 
     private function normalizeClassTokens(string|array $class): array

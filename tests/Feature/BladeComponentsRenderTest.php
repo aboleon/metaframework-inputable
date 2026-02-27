@@ -42,7 +42,7 @@ class BladeComponentsRenderTest extends TestCase
         $this->assertStringContainsString('value="5"', $html);
     }
 
-    public function test_textarea_component_renders_height_and_value_and_validation_error(): void
+    public function test_textarea_component_defaults_to_text_mode_and_renders_validation_error(): void
     {
         $errors = new ViewErrorBag;
         $errors->put('default', new MessageBag(['notes' => ['Required']]));
@@ -55,89 +55,120 @@ class BladeComponentsRenderTest extends TestCase
 
         $this->assertStringContainsString('name="notes"', $html);
         $this->assertStringContainsString('style="height:120px"', $html);
+        $this->assertStringContainsString('class="form-control simplified"', $html);
         $this->assertStringContainsString('>Hello</textarea>', $html);
         $this->assertStringContainsString('invalid-feedback d-block', $html);
-        $this->assertStringContainsString('tinymce.min.js', $html);
+        $this->assertStringNotContainsString('data-mfw-inputable-cherry="1"', $html);
+        $this->assertStringNotContainsString('data-mfw-inputable-editor-mode="html"', $html);
+        $this->assertStringNotContainsString('tinymce.min.js', $html);
+        $this->assertStringNotContainsString('cherry-markdown.min.js', $html);
+        $this->assertStringNotContainsString('data-mfw-inputable-content-type-radio', $html);
     }
 
-    public function test_textarea_content_type_false_keeps_previous_tinymce_class_rule(): void
+    public function test_textarea_component_markdown_mode_renders_cherry_markup_and_assets(): void
     {
         $html = Blade::render(
-            '<x-mfw-inputable::textarea name="notes" class="simplified" :content-type="false" />@stack("js")'
+            '<x-mfw-inputable::textarea name="notes" mode="markdown" :height="120" />@stack("js")'
         );
 
-        $this->assertStringContainsString('class="form-control simplified"', $html);
-        $this->assertStringContainsString('tinymce.min.js', $html);
-        $this->assertStringNotContainsString('data-mfw-inputable-content-type-enabled="1"', $html);
-        $this->assertStringNotContainsString('mfw-inputable[content_type][notes]', $html);
+        $this->assertStringContainsString('data-mfw-inputable-cherry="1"', $html);
+        $this->assertStringContainsString('data-mfw-inputable-cherry-container="notes_cherry"', $html);
+        $this->assertStringContainsString('<div id="notes_cherry" class="mfw-inputable-cherry-host"', $html);
+        $this->assertStringContainsString('vendor/mfw-inputable/components/textarea-cherry.js', $html);
+        $this->assertStringContainsString('cherry-markdown.min.js', $html);
+        $this->assertStringNotContainsString('tinymce.min.js', $html);
     }
 
-    public function test_textarea_content_type_html_string_applies_simplified_and_enables_runtime(): void
+    public function test_textarea_component_html_mode_activates_tinymce_without_rendering_radios(): void
+    {
+        $html = Blade::render(
+            '<x-mfw-inputable::textarea name="notes" mode="html" class="extended" />@stack("js")'
+        );
+
+        $this->assertStringContainsString('data-mfw-inputable-editor-mode="html"', $html);
+        $this->assertStringContainsString('data-mfw-inputable-tinymce-preset="extended"', $html);
+        $this->assertStringContainsString('vendor/mfw-inputable/components/textarea-content-type.js', $html);
+        $this->assertStringContainsString('tinymce.min.js', $html);
+        $this->assertStringNotContainsString('type="radio"', $html);
+        $this->assertStringNotContainsString('data-mfw-inputable-content-type-radio', $html);
+    }
+
+    public function test_textarea_component_invalid_mode_falls_back_to_text_mode(): void
+    {
+        $html = Blade::render(
+            '<x-mfw-inputable::textarea name="notes" mode="legacy" class="extended" />@stack("js")'
+        );
+
+        $this->assertStringContainsString('class="form-control extended"', $html);
+        $this->assertStringNotContainsString('data-mfw-inputable-editor-mode="html"', $html);
+        $this->assertStringNotContainsString('data-mfw-inputable-cherry="1"', $html);
+        $this->assertStringNotContainsString('tinymce.min.js', $html);
+        $this->assertStringNotContainsString('cherry-markdown.min.js', $html);
+    }
+
+    public function test_textarea_component_content_type_html_string_maps_to_html_mode_without_radios(): void
     {
         $html = Blade::render(
             '<x-mfw-inputable::textarea name="notes" content-type="html" />@stack("js")'
         );
 
-        $this->assertStringContainsString('class="form-control simplified"', $html);
-        $this->assertStringContainsString('name="mfw-inputable[content_type][notes]"', $html);
-        $this->assertStringContainsString('value="html"', $html);
-        $this->assertStringContainsString('data-mfw-inputable-content-type-enabled="1"', $html);
-        $this->assertStringContainsString('vendor/mfw-inputable/components/textarea-content-type.js', $html);
+        $this->assertStringContainsString('data-mfw-inputable-editor-mode="html"', $html);
+        $this->assertStringContainsString('data-mfw-inputable-tinymce-preset="simplified"', $html);
         $this->assertStringContainsString('tinymce.min.js', $html);
+        $this->assertStringNotContainsString('type="radio"', $html);
     }
 
-    public function test_textarea_content_type_markdown_string_keeps_class_and_disables_initial_tinymce(): void
-    {
-        $html = Blade::render(
-            '<x-mfw-inputable::textarea name="notes" class="extended" content-type="markdown" />@stack("js")'
-        );
-
-        $this->assertStringContainsString('class="form-control extended"', $html);
-        $this->assertStringContainsString('name="mfw-inputable[content_type][notes]"', $html);
-        $this->assertStringContainsString('value="markdown"', $html);
-        $this->assertStringContainsString('vendor/mfw-inputable/components/textarea-content-type.js', $html);
-    }
-
-    public function test_textarea_content_type_invalid_string_falls_back_to_tinymce_class_and_ignores_legacy_type_param(): void
-    {
-        $html = Blade::render(
-            '<x-mfw-inputable::textarea name="notes" class="extended" content-type="legacy" :params="$params" />@stack("js")',
-            ['params' => ['type' => 'text', 'data-x' => '1']]
-        );
-
-        $this->assertStringContainsString('class="form-control extended"', $html);
-        $this->assertStringContainsString('data-x="1"', $html);
-        $this->assertStringContainsString('name="mfw-inputable[content_type][notes]"', $html);
-        $this->assertStringContainsString('value="html"', $html);
-        $this->assertStringNotContainsString(' type="text"', $html);
-        $this->assertStringContainsString('vendor/mfw-inputable/components/textarea-content-type.js', $html);
-    }
-
-    public function test_textarea_content_type_renders_radio_hidden_input_and_runtime_hooks(): void
-    {
-        $html = Blade::render(
-            '<x-mfw-inputable::textarea name="notes" :content-type="true" />@stack("js")'
-        );
-
-        $this->assertStringContainsString('name="mfw-inputable[content_type][notes]"', $html);
-        $this->assertStringContainsString('value="text"', $html);
-        $this->assertStringContainsString('data-mfw-inputable-content-type-enabled="1"', $html);
-        $this->assertStringContainsString('data-mfw-inputable-content-type-radio="notes"', $html);
-        $this->assertStringContainsString('vendor/mfw-inputable/components/textarea-content-type.js', $html);
-        $this->assertStringContainsString('tinymce.min.js', $html);
-    }
-
-    public function test_textarea_content_type_true_infers_html_from_existing_tinymce_class(): void
+    public function test_textarea_component_content_type_true_infers_html_when_editor_class_exists(): void
     {
         $html = Blade::render(
             '<x-mfw-inputable::textarea name="notes" class="simplified" :content-type="true" />@stack("js")'
         );
 
         $this->assertStringContainsString('class="form-control simplified"', $html);
-        $this->assertStringContainsString('name="mfw-inputable[content_type][notes]"', $html);
-        $this->assertStringContainsString('value="html"', $html);
+        $this->assertStringContainsString('data-mfw-inputable-editor-mode="html"', $html);
         $this->assertStringContainsString('data-mfw-inputable-tinymce-preset="simplified"', $html);
-        $this->assertStringContainsString('vendor/mfw-inputable/components/textarea-content-type.js', $html);
+        $this->assertStringContainsString('tinymce.min.js', $html);
+        $this->assertStringNotContainsString('type="radio"', $html);
+    }
+
+    public function test_textarea_component_does_not_parse_mode_or_type_from_params(): void
+    {
+        $html = Blade::render(
+            '<x-mfw-inputable::textarea name="notes" :params="$params" />@stack("js")',
+            ['params' => ['type' => 'text', 'mode' => 'markdown', 'data-x' => '1']]
+        );
+
+        $this->assertStringContainsString('data-x="1"', $html);
+        $this->assertStringContainsString('type="text"', $html);
+        $this->assertStringContainsString('mode="markdown"', $html);
+        $this->assertStringNotContainsString('data-mfw-inputable-cherry="1"', $html);
+        $this->assertStringNotContainsString('vendor/mfw-inputable/components/textarea-cherry.js', $html);
+    }
+
+    public function test_textarea_component_readonly_skips_editor_initialization(): void
+    {
+        $markdownHtml = Blade::render(
+            '<x-mfw-inputable::textarea name="notes" mode="markdown" readonly />@stack("js")'
+        );
+        $htmlModeHtml = Blade::render(
+            '<x-mfw-inputable::textarea name="body" mode="html" readonly />@stack("js")'
+        );
+
+        $this->assertStringContainsString('readonly', $markdownHtml);
+        $this->assertStringNotContainsString('data-mfw-inputable-cherry="1"', $markdownHtml);
+        $this->assertStringNotContainsString('cherry-markdown.min.js', $markdownHtml);
+        $this->assertStringNotContainsString('data-mfw-inputable-editor-mode="html"', $htmlModeHtml);
+        $this->assertStringNotContainsString('tinymce.min.js', $htmlModeHtml);
+    }
+
+    public function test_textarea_component_normalizes_array_class_tokens(): void
+    {
+        $html = Blade::render(
+            '<x-mfw-inputable::textarea name="notes" :class="$classes" />',
+            ['classes' => ['extended', 'mb-2', 'extended', ' ']]
+        );
+
+        $this->assertStringContainsString('class="form-control extended mb-2"', $html);
     }
 
     public function test_select_component_renders_nullable_option_and_selected_value(): void

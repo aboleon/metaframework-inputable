@@ -49,7 +49,7 @@ php artisan vendor:publish --tag=mfw-inputable-assets
 |-----------|-------------|
 | `input` | Text input with prefix/suffix support |
 | `number` | Numeric input with min/max/step |
-| `textarea` | Textarea with optional TinyMCE |
+| `textarea` | Textarea with `text`, `markdown`, and `html` modes |
 | `select` | Dropdown with optional groups |
 | `checkbox` | Single checkbox or switch |
 | `radio` | Radio button group |
@@ -125,10 +125,14 @@ Numeric input with constraints.
 
 ### Textarea
 
-Textarea with optional TinyMCE rich text editor and optional runtime content type selector.
+Textarea with three content modes:
+
+- `text` (default): plain textarea
+- `markdown`: Cherry Markdown editor
+- `html`: TinyMCE editor
 
 ```blade
-{{-- Plain textarea --}}
+{{-- Default TEXT mode --}}
 <x-mfw-inputable::textarea
     name="notes"
     label="Notes"
@@ -136,24 +140,25 @@ Textarea with optional TinyMCE rich text editor and optional runtime content typ
     :height="150"
 />
 
-{{-- With TinyMCE (simplified toolbar) --}}
+{{-- MARKDOWN mode (Cherry) --}}
 <x-mfw-inputable::textarea
-    name="description"
-    label="Description"
-    class="simplified"
-    :value="$product->description"
+    name="description_markdown"
+    label="Description (Markdown)"
+    mode="markdown"
+    :value="$product->description_markdown"
 />
 
-{{-- With TinyMCE (full toolbar) --}}
+{{-- HTML mode (TinyMCE full toolbar with class="extended") --}}
 <x-mfw-inputable::textarea
     name="content"
     label="Content"
+    mode="html"
     class="extended"
     :height="400"
     :value="$article->content"
 />
 
-{{-- Runtime content type selector (HTML / Markdown / Text) --}}
+{{-- Legacy alias: content-type still maps to mode --}}
 <x-mfw-inputable::textarea
     name="body"
     label="Body"
@@ -162,20 +167,17 @@ Textarea with optional TinyMCE rich text editor and optional runtime content typ
 />
 ```
 
-`contentType` accepts `bool|string`:
+`mode` accepts:
 
-- `false` (default): no radios; TinyMCE behavior relies only on textarea classes (`simplified` / `extended`)
-- `true`: render radios and infer initial content type from classes (`html` when TinyMCE class is present, otherwise `text`)
-- `'html' | 'markdown' | 'text'`: render radios with that initial selected value
-- any other string: render radios and infer initial content type from classes (same fallback as `true`)
+- `'text'` (default)
+- `'markdown'`
+- `'html'`
+- any unknown value falls back to `'text'`
 
-When radios are enabled, the component renders a synced hidden input named:
+`contentType` remains available as a legacy alias:
 
-```text
-mfw-inputable[content_type][{textarea_name}]
-```
-
-TinyMCE is enabled only when the selected content type is `html`. Switching away from `html` removes TinyMCE at runtime and converts the editor content back to textarea text with preserved line breaks.
+- `true`: infers `html` when `class` contains `simplified` or `extended`; otherwise `text`
+- `string`: resolved through `ContentTypeEnum` (`html`, `markdown`, `text`)
 
 **Parameters:**
 
@@ -184,8 +186,9 @@ TinyMCE is enabled only when the selected content type is `html`. Switching away
 | `name` | string | required | Field name |
 | `value` | string | `null` | Content |
 | `label` | string | `null` | Field label |
-| `class` | string | `''` | CSS classes (`simplified` or `extended` for TinyMCE) |
-| `contentType` | bool|string | `false` | `false` disables radios; `true`/string enables radios and sets or infers content type |
+| `class` | string | `''` | CSS classes (`simplified` or `extended` select TinyMCE preset in `html` mode) |
+| `mode` | string | `'text'` | Content mode (`text`, `markdown`, `html`) |
+| `contentType` | bool|string|null | `null` | Legacy alias to resolve mode via `ContentTypeEnum` |
 | `height` | int | `200` | Height in pixels |
 | `required` | bool | `false` | Required field |
 | `readonly` | bool | `false` | Read-only field |
@@ -498,8 +501,10 @@ Published to `public/vendor/mfw-inputable/`:
 
 - **Flatpickr** - Date picker library with themes
 - **TinyMCE** - Rich text editor
+- **Cherry Markdown** - Markdown editor
 - **Input Date Mask** - Date masking script
-- **Textarea Content Type Runtime** - TinyMCE/content-type toggle script (`components/textarea-content-type.js`)
+- **Textarea TinyMCE Runtime** - TinyMCE initializer for `html` mode (`components/textarea-content-type.js`)
+- **Textarea Cherry Runtime** - Cherry initializer and textarea sync (`components/textarea-cherry.js`)
 
 ## License
 
