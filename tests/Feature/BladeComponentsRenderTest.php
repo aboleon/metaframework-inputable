@@ -115,19 +115,6 @@ class BladeComponentsRenderTest extends TestCase
         $this->assertStringNotContainsString('cherry-markdown.min.js', $html);
     }
 
-    public function test_textarea_component_plain_mode_can_be_passed_in_params(): void
-    {
-        $html = Blade::render(
-            '<x-mfw-inputable::textarea name="notes" :params="$params" />@stack("js")',
-            ['params' => ['mode' => 'plain', 'data-x' => '1']]
-        );
-
-        $this->assertStringContainsString('data-x="1"', $html);
-        $this->assertStringNotContainsString(' mode="plain"', $html);
-        $this->assertStringNotContainsString('data-mfw-inputable-cherry="1"', $html);
-        $this->assertStringNotContainsString('cherry-markdown.min.js', $html);
-    }
-
     public function test_select_component_renders_nullable_option_and_selected_value(): void
     {
         $this->ensureGlobalTranslations();

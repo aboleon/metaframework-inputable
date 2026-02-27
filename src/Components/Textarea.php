@@ -42,17 +42,6 @@ class Textarea extends Component
         if (array_key_exists('height', $this->params)) {
             $this->height = $this->params['height'];
         }
-
-        if (array_key_exists('mode', $this->params)) {
-            $this->mode = (string) $this->params['mode'];
-            unset($this->params['mode']);
-        }
-
-        if (array_key_exists('markdown', $this->params)) {
-            $this->mode = (bool) $this->params['markdown'] ? self::MODE_MARKDOWN : self::MODE_PLAIN;
-            unset($this->params['markdown']);
-        }
-
         $this->mode = $this->normalizeMode($this->mode);
     }
 

@@ -49,7 +49,7 @@ php artisan vendor:publish --tag=mfw-inputable-assets
 |-----------|-------------|
 | `input` | Text input with prefix/suffix support |
 | `number` | Numeric input with min/max/step |
-| `textarea` | Textarea with Cherry Markdown editor |
+| `textarea` | Textarea with Markdown or plain mode |
 | `select` | Dropdown with optional groups |
 | `checkbox` | Single checkbox or switch |
 | `radio` | Radio button group |
@@ -125,7 +125,7 @@ Numeric input with constraints.
 
 ### Textarea
 
-Textarea with Cherry Markdown editor (Markdown-first by default). The original `<textarea>` remains as the submitted field and is synchronized automatically.
+Textarea with Cherry Markdown editor (Markdown-first by default). The original `<textarea>` remains the submitted field and is synchronized automatically when markdown mode is active.
 
 ```blade
 {{-- Cherry Markdown editor (default behavior) --}}
@@ -148,6 +148,7 @@ Textarea with Cherry Markdown editor (Markdown-first by default). The original `
 <x-mfw-inputable::textarea
     name="content"
     label="Content"
+    mode="markdown"
     :height="400"
     :value="$article->content"
 />
@@ -162,7 +163,7 @@ Textarea with Cherry Markdown editor (Markdown-first by default). The original `
 | `label` | string | `null` | Field label |
 | `class` | string | `''` | CSS classes applied to the underlying textarea (fallback/submission field) |
 | `height` | int | `200` | Fallback textarea height and Cherry editor height |
-| `mode` | string | `'markdown'` | Editor mode: `'markdown'` or `'plain'` |
+| `mode` | string | `'markdown'` | Editor mode (`markdown` or `plain`) |
 | `required` | bool | `false` | Required field |
 | `readonly` | bool | `false` | Read-only field (keeps plain textarea, no Cherry init) |
 | `params` | array | `[]` | Extra HTML attributes |
@@ -401,7 +402,7 @@ Display validation error for a field.
     <x-mfw-inputable::textarea
         name="description"
         label="Description"
-        class="extended"
+        mode="markdown"
         :height="300"
         :value="old('description', $product->description)"
     />
@@ -473,7 +474,7 @@ Translation keys are in the `mfw-inputable-messages` namespace.
 Published to `public/vendor/mfw-inputable/`:
 
 - **Flatpickr** - Date picker library with themes
-- **Cherry Markdown** - Markdown editor (loaded via CDN in textarea component)
+- **Cherry Markdown** - Markdown editor (loaded via CDN only when textarea mode is `markdown`)
 - **Input Date Mask** - Date masking script
 - **Textarea Cherry Runtime** - Cherry initializer and textarea sync (`components/textarea-cherry.js`)
 - **Cherry Locale Packs** - async toolbar locale overrides (`components/cherry-locales/fr_FR.js`, `components/cherry-locales/bg_BG.js`)
