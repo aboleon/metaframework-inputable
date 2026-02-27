@@ -7,7 +7,6 @@ namespace MetaFramework\Inputable\Components;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Str;
 use Illuminate\View\Component;
-use MetaFramework\Inputable\Enum\ContentTypeEnum;
 use MetaFramework\Inputable\Support\Helpers;
 
 class Textarea extends Component
@@ -16,21 +15,11 @@ class Textarea extends Component
 
     private string $validation_id;
 
-    public bool $shouldActivateTinymce = false;
+    private string $cherryContainerId;
 
-    public bool $contentTypeEnabled = false;
+    private const MODE_MARKDOWN = 'markdown';
 
-    public string $contentTypeValue = '';
-
-    public string $contentTypeHiddenName = '';
-
-    public string $contentTypeHiddenId = '';
-
-    public string $contentTypeRadioName = '';
-
-    public array $contentTypeOptions = [];
-
-    public string $tinymcePreset = 'simplified';
+    private const MODE_PLAIN = 'plain';
 
     public function __construct(
         public string $name,
@@ -39,92 +28,41 @@ class Textarea extends Component
         public string|array $class = '',
         public array $params = [],
         public int $height = 200,
+        public string $mode = self::MODE_MARKDOWN,
         public bool $required = false,
         public bool $readonly = false,
         public bool $randomize = false,
-        public bool|string $contentType = false,
     ) {
-        $this->id            = Helpers::generateInputId($this->name . ($this->randomize ? '_' . Str::random(8) : ''));
+        $this->id = Helpers::generateInputId($this->name . ($this->randomize ? '_' . Str::random(8) : ''));
+        $this->cherryContainerId = sprintf('%s_cherry', $this->id);
         $this->validation_id = Helpers::generateValidationId($this->name);
-        $this->name          = Helpers::generateInputName($this->name);
+        $this->name = Helpers::generateInputName($this->name);
+        $this->class = implode(' ', $this->normalizeClassTokens($this->class));
 
         if (array_key_exists('height', $this->params)) {
             $this->height = $this->params['height'];
         }
 
-        $this->removeLegacyTypeParam();
-        $this->configureContentTypeBehavior();
+        if (array_key_exists('mode', $this->params)) {
+            $this->mode = (string) $this->params['mode'];
+            unset($this->params['mode']);
+        }
+
+        if (array_key_exists('markdown', $this->params)) {
+            $this->mode = (bool) $this->params['markdown'] ? self::MODE_MARKDOWN : self::MODE_PLAIN;
+            unset($this->params['markdown']);
+        }
+
+        $this->mode = $this->normalizeMode($this->mode);
     }
 
     public function render(): Renderable
     {
         return view('mfw-inputable::components.textarea')->with([
             'id' => $this->id,
+            'cherry_container_id' => $this->cherryContainerId,
             'validation_id' => $this->validation_id,
         ]);
-    }
-
-    private function configureContentTypeBehavior(): void
-    {
-        $classTokens = $this->normalizeClassTokens($this->class);
-        $this->tinymcePreset = $this->detectTinymcePreset($classTokens) ?? 'simplified';
-        $hasEditorClass = $this->hasEditorClass($classTokens);
-        $this->contentTypeEnabled = $this->shouldEnableContentTypeSelector();
-
-        if ($this->contentTypeEnabled) {
-            $effectiveType = $this->resolveContentTypeValueFromParam() ?? ($hasEditorClass
-                ? ContentTypeEnum::HTML->value
-                : ContentTypeEnum::default());
-
-            if ($effectiveType === ContentTypeEnum::HTML->value && !$hasEditorClass) {
-                $classTokens[] = $this->tinymcePreset;
-                $hasEditorClass = true;
-            }
-
-            $this->contentTypeValue = $effectiveType;
-            $this->contentTypeOptions = [
-                ContentTypeEnum::HTML->value => 'HTML',
-                ContentTypeEnum::MARKDOWN->value => 'Markdown',
-                ContentTypeEnum::TEXT->value => 'Text',
-            ];
-            $this->contentTypeHiddenName = sprintf('mfw-inputable[content_type][%s]', $this->name);
-            $this->contentTypeHiddenId = sprintf('%s_content_type_hidden', $this->id);
-            $this->contentTypeRadioName = sprintf('%s_content_type_selector', $this->id);
-        }
-
-        $this->shouldActivateTinymce = $this->contentTypeEnabled
-            ? $this->contentTypeValue === ContentTypeEnum::HTML->value
-            : $hasEditorClass;
-        $this->class = implode(' ', $classTokens);
-    }
-
-    private function removeLegacyTypeParam(): void
-    {
-        if (array_key_exists('type', $this->params)) {
-            unset($this->params['type']);
-        }
-    }
-
-    private function shouldEnableContentTypeSelector(): bool
-    {
-        return $this->contentType === true || is_string($this->contentType);
-    }
-
-    private function resolveContentTypeValueFromParam(): ?string
-    {
-        if (!is_string($this->contentType)) {
-            return null;
-        }
-
-        $normalized = strtolower(trim($this->contentType));
-
-        if ($normalized === '') {
-            return null;
-        }
-
-        return in_array($normalized, ContentTypeEnum::values(), true)
-            ? $normalized
-            : null;
     }
 
     private function normalizeClassTokens(string|array $class): array
@@ -141,22 +79,14 @@ class Textarea extends Component
             ->all();
     }
 
-    private function hasEditorClass(array $classTokens): bool
+    private function normalizeMode(string $mode): string
     {
-        return in_array('simplified', $classTokens, true)
-            || in_array('extended', $classTokens, true);
-    }
+        $normalizedMode = strtolower(trim($mode));
 
-    private function detectTinymcePreset(array $classTokens): ?string
-    {
-        if (in_array('extended', $classTokens, true)) {
-            return 'extended';
+        if ($normalizedMode === self::MODE_PLAIN) {
+            return self::MODE_PLAIN;
         }
 
-        if (in_array('simplified', $classTokens, true)) {
-            return 'simplified';
-        }
-
-        return null;
+        return self::MODE_MARKDOWN;
     }
 }

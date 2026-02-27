@@ -49,7 +49,7 @@ php artisan vendor:publish --tag=mfw-inputable-assets
 |-----------|-------------|
 | `input` | Text input with prefix/suffix support |
 | `number` | Numeric input with min/max/step |
-| `textarea` | Textarea with optional TinyMCE |
+| `textarea` | Textarea with Cherry Markdown editor |
 | `select` | Dropdown with optional groups |
 | `checkbox` | Single checkbox or switch |
 | `radio` | Radio button group |
@@ -125,57 +125,33 @@ Numeric input with constraints.
 
 ### Textarea
 
-Textarea with optional TinyMCE rich text editor and optional runtime content type selector.
+Textarea with Cherry Markdown editor (Markdown-first by default). The original `<textarea>` remains as the submitted field and is synchronized automatically.
 
 ```blade
-{{-- Plain textarea --}}
+{{-- Cherry Markdown editor (default behavior) --}}
+<x-mfw-inputable::textarea
+    name="description"
+    label="Description"
+    :value="$product->description"
+/>
+
+{{-- Plain textarea (no Cherry) --}}
 <x-mfw-inputable::textarea
     name="notes"
     label="Notes"
+    mode="plain"
     :value="old('notes')"
     :height="150"
 />
 
-{{-- With TinyMCE (simplified toolbar) --}}
-<x-mfw-inputable::textarea
-    name="description"
-    label="Description"
-    class="simplified"
-    :value="$product->description"
-/>
-
-{{-- With TinyMCE (full toolbar) --}}
+{{-- Taller editor --}}
 <x-mfw-inputable::textarea
     name="content"
     label="Content"
-    class="extended"
     :height="400"
     :value="$article->content"
 />
-
-{{-- Runtime content type selector (HTML / Markdown / Text) --}}
-<x-mfw-inputable::textarea
-    name="body"
-    label="Body"
-    :value="old('body', $page->body)"
-    content-type="html"
-/>
 ```
-
-`contentType` accepts `bool|string`:
-
-- `false` (default): no radios; TinyMCE behavior relies only on textarea classes (`simplified` / `extended`)
-- `true`: render radios and infer initial content type from classes (`html` when TinyMCE class is present, otherwise `text`)
-- `'html' | 'markdown' | 'text'`: render radios with that initial selected value
-- any other string: render radios and infer initial content type from classes (same fallback as `true`)
-
-When radios are enabled, the component renders a synced hidden input named:
-
-```text
-mfw-inputable[content_type][{textarea_name}]
-```
-
-TinyMCE is enabled only when the selected content type is `html`. Switching away from `html` removes TinyMCE at runtime and converts the editor content back to textarea text with preserved line breaks.
 
 **Parameters:**
 
@@ -184,11 +160,11 @@ TinyMCE is enabled only when the selected content type is `html`. Switching away
 | `name` | string | required | Field name |
 | `value` | string | `null` | Content |
 | `label` | string | `null` | Field label |
-| `class` | string | `''` | CSS classes (`simplified` or `extended` for TinyMCE) |
-| `contentType` | bool|string | `false` | `false` disables radios; `true`/string enables radios and sets or infers content type |
-| `height` | int | `200` | Height in pixels |
+| `class` | string | `''` | CSS classes applied to the underlying textarea (fallback/submission field) |
+| `height` | int | `200` | Fallback textarea height and Cherry editor height |
+| `mode` | string | `'markdown'` | Editor mode: `'markdown'` or `'plain'` |
 | `required` | bool | `false` | Required field |
-| `readonly` | bool | `false` | Read-only field |
+| `readonly` | bool | `false` | Read-only field (keeps plain textarea, no Cherry init) |
 | `params` | array | `[]` | Extra HTML attributes |
 
 ### Select
@@ -497,9 +473,10 @@ Translation keys are in the `mfw-inputable-messages` namespace.
 Published to `public/vendor/mfw-inputable/`:
 
 - **Flatpickr** - Date picker library with themes
-- **TinyMCE** - Rich text editor
+- **Cherry Markdown** - Markdown editor (loaded via CDN in textarea component)
 - **Input Date Mask** - Date masking script
-- **Textarea Content Type Runtime** - TinyMCE/content-type toggle script (`components/textarea-content-type.js`)
+- **Textarea Cherry Runtime** - Cherry initializer and textarea sync (`components/textarea-cherry.js`)
+- **Cherry Locale Packs** - async toolbar locale overrides (`components/cherry-locales/fr_FR.js`, `components/cherry-locales/bg_BG.js`)
 
 ## License
 
