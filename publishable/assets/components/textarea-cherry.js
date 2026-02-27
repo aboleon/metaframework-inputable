@@ -183,7 +183,7 @@
         window.mfwInputableCherrySubmitListenerBound = true;
     }
 
-    function createCherry(textarea, host, locale) {
+    function createCherry(textarea, host, locale, editorHeight) {
         let Cherry = cherryConstructor();
         let localizedPacks;
         let options;
@@ -199,7 +199,7 @@
             locale: locale,
             editor: {
                 defaultModel: 'edit&preview',
-                height: '100%',
+                height: editorHeight,
                 convertWhenPaste: true,
                 keepDocumentScrollAfterInit: true,
             },
@@ -243,11 +243,43 @@
         textarea.setAttribute('data-mfw-inputable-cherry-initialized', '1');
         host.classList.add('is-ready');
         host.style.display = '';
+        host.style.visibility = '';
+
+        forceCherryLayout(instance);
+    }
+
+    function forceCherryLayout(instance) {
+        function activateSplitPreview() {
+            if (instance && typeof instance.switchModel === 'function') {
+                instance.switchModel('edit&preview');
+            }
+        }
+
+        function dispatchResize() {
+            if (typeof window.dispatchEvent === 'function') {
+                window.dispatchEvent(new Event('resize'));
+            }
+        }
+
+        if (typeof window.requestAnimationFrame === 'function') {
+            window.requestAnimationFrame(function () {
+                window.requestAnimationFrame(function () {
+                    activateSplitPreview();
+                    dispatchResize();
+                });
+            });
+
+            return;
+        }
+
+        activateSplitPreview();
+        dispatchResize();
     }
 
     function initTextarea(textarea, locale) {
         let host;
         let initialHeight;
+        let editorHeight;
         let instance;
 
         if (!textarea || textarea.getAttribute('data-mfw-inputable-cherry-initialized') === '1') {
@@ -261,9 +293,12 @@
         }
 
         initialHeight = normalizeHeight(textarea.getAttribute('data-mfw-inputable-cherry-height'));
+        editorHeight = initialHeight;
         host.style.height = initialHeight;
+        host.style.display = 'block';
+        host.style.visibility = 'hidden';
 
-        instance = createCherry(textarea, host, locale);
+        instance = createCherry(textarea, host, locale, editorHeight);
 
         if (!instance) {
             return;

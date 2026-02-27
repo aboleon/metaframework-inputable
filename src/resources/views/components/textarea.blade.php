@@ -37,7 +37,7 @@
                 display: none;
                 min-height: 160px;
                 resize: vertical;
-                overflow: auto;
+                overflow: visible;
             }
 
             .mfw-inputable-cherry-host.is-ready {
@@ -48,6 +48,11 @@
                 border: 1px solid #ced4da;
                 border-radius: 0.375rem;
                 height: 100% !important;
+                overflow: visible;
+            }
+
+            .mfw-inputable-cherry-host .cherry-toolbar {
+                overflow: visible;
             }
         </style>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cherry-markdown@0.10.3/dist/cherry-markdown.min.css"
